@@ -1,90 +1,56 @@
-import { useEffect, useState } from 'react'
-import { Moon, Search, Sparkles, Sun } from 'lucide-react'
+import { useRef } from 'react'
+import { Moon, Sparkles, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DashboardLayout } from '@/components/DashboardLayout'
+import { ModeSwitcher } from '@/components/ModeSwitcher'
 import { StateDebugPanel } from '@/components/StateDebugPanel'
+import { useBootAnimation } from '@/hooks/use-boot-animation'
+import { useHydrated } from '@/hooks/use-hydrated'
 import { useApplyTheme } from '@/hooks/use-theme'
 import { useAppStore } from '@/store/useAppStore'
 
-function useClock() {
-  const [now, setNow] = useState(() => new Date())
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000)
-    return () => clearInterval(id)
-  }, [])
-  return now
-}
-
-function greetingFor(hour: number) {
-  if (hour < 5) return 'Still up, dreamer?'
-  if (hour < 12) return 'Good morning'
-  if (hour < 18) return 'Good afternoon'
-  return 'Good evening'
-}
-
 export default function App() {
   useApplyTheme()
-  const theme = useAppStore((s) => s.settings.theme)
-  const widgets = useAppStore((s) => s.widgets)
-  const updateSettings = useAppStore((s) => s.updateSettings)
-  const isDark = theme === 'dark' || (theme === 'dynamic' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-  const now = useClock()
+  const hydrated = useHydrated()
+  const rootRef = useRef<HTMLDivElement>(null)
+  useBootAnimation(rootRef, hydrated)
 
-  const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  const date = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })
+  const theme = useAppStore((s) => s.settings.theme)
+  const updateSettings = useAppStore((s) => s.updateSettings)
+  const isDark =
+    theme === 'dark' || (theme === 'dynamic' && window.matchMedia('(prefers-color-scheme: dark)').matches)
 
   return (
-    <div className="flex min-h-full flex-col bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
-      <header className="flex items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-          <Sparkles className="h-4 w-4 text-violet-500 dark:text-violet-400" />
-          DeluluTab
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => updateSettings({ theme: isDark ? 'light' : 'dark' })}
-          aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-        >
-          {isDark ? <Sun /> : <Moon />}
-        </Button>
-      </header>
+    <div
+      ref={rootRef}
+      className="flex min-h-full flex-col bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100"
+    >
+      {/* Wait for persisted state so the saved layout doesn't visibly re-animate on boot. */}
+      {hydrated && (
+        <>
+          <header data-boot="header" className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-2 text-sm font-semibold tracking-tight">
+              <Sparkles className="h-4 w-4 text-violet-500 dark:text-violet-400" />
+              DeluluTab
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => updateSettings({ theme: isDark ? 'light' : 'dark' })}
+              aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+            >
+              {isDark ? <Sun /> : <Moon />}
+            </Button>
+          </header>
 
-      <main className="flex flex-1 flex-col items-center justify-center gap-8 px-6 pb-24">
-        {widgets.clock && (
-        <div className="text-center">
-          <p className="text-7xl font-light tabular-nums tracking-tight sm:text-8xl">{time}</p>
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{date}</p>
-        </div>
-        )}
+          <div data-boot="dashboard" className="flex flex-1 flex-col pb-20">
+            <DashboardLayout />
+          </div>
 
-        <h1 className="text-2xl font-medium text-slate-700 dark:text-slate-300">
-          {greetingFor(now.getHours())}
-        </h1>
-
-        {widgets.search && (
-        <form
-          className="w-full max-w-xl"
-          onSubmit={(e) => {
-            e.preventDefault()
-            const q = new FormData(e.currentTarget).get('q')?.toString().trim()
-            if (q) window.location.href = `https://www.google.com/search?q=${encodeURIComponent(q)}`
-          }}
-        >
-          <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm focus-within:ring-2 focus-within:ring-violet-500/50 dark:border-slate-800 dark:bg-slate-900">
-            <Search className="h-4 w-4 shrink-0 text-slate-400" />
-            <input
-              name="q"
-              autoFocus
-              autoComplete="off"
-              placeholder="Search the web or ask AI…"
-              className="w-full bg-transparent text-base outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
-          </label>
-        </form>
-        )}
-      </main>
-
-      <StateDebugPanel />
+          <ModeSwitcher />
+          <StateDebugPanel />
+        </>
+      )}
     </div>
   )
 }
