@@ -42,6 +42,8 @@ export interface Settings {
   newsCategory: NewsCategory
   /** Preferred AI for the prompt launcher; remembered from the last one used. */
   aiProvider: AiProviderId
+  /** Last tab open in the mini-tools drawer. */
+  quickAppsTab: QuickAppsTab
   chordTrigger: ChordTrigger
   /** Max pause between chord keystrokes before the chord window closes. */
   chordWindowMs: number
@@ -73,6 +75,15 @@ export interface Chord {
   shortcutId: string
   enabled: boolean
 }
+
+export interface Todo {
+  id: string
+  text: string
+  done: boolean
+  createdAt: number
+}
+
+export type QuickAppsTab = 'notes' | 'todos' | 'calc'
 
 export type WidgetKey = 'clock' | 'weather' | 'search' | 'aiLauncher' | 'news' | 'quickApps'
 export type WidgetsState = Record<WidgetKey, boolean>

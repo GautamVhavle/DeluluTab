@@ -7,6 +7,7 @@ import { ChordHud } from '@/components/chords/ChordHud'
 import { ChordManager } from '@/components/chords/ChordManager'
 import { DashboardLayout } from '@/components/DashboardLayout'
 import { ModeSwitcher } from '@/components/ModeSwitcher'
+import { QuickAppsDrawer } from '@/components/quickapps/QuickAppsDrawer'
 import { WidgetSettings } from '@/components/settings/WidgetSettings'
 import { useBootAnimation } from '@/hooks/use-boot-animation'
 import { useHydrated } from '@/hooks/use-hydrated'
@@ -71,6 +72,7 @@ export default function App() {
           <BackgroundSettings open={backgroundOpen} onOpenChange={setBackgroundOpen} />
           <ChordManager open={chordsOpen} onOpenChange={setChordsOpen} />
           <ModeSwitcher />
+          <QuickAppsDrawer />
         </>
       )}
     </div>

@@ -1,11 +1,12 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { createChromeStorage, subscribeToExternalChanges } from './chromeStorage'
+import { createSplitStorage, splitKeys, subscribeToExternalChanges } from './chromeStorage'
 import type {
   Chord,
   Folder,
   Settings,
   Shortcut,
+  Todo,
   WidgetKey,
   WidgetsState,
 } from './types'
@@ -15,6 +16,9 @@ export * from './types'
 const STORAGE_KEY = 'delulutab:store'
 
 const newId = () => crypto.randomUUID()
+
+export const MAX_NOTES_LENGTH = 100_000
+export const MAX_TODO_LENGTH = 200
 
 /** Swaps item `id` with its neighbour among items sharing the same group; no-op at either end. */
 function moveWithinGroup<T extends { id: string }>(
@@ -59,6 +63,7 @@ const defaultSettings: Settings = {
   weatherLocation: null,
   newsCategory: 'tech',
   aiProvider: 'chatgpt',
+  quickAppsTab: 'notes',
   chordTrigger: 'Backquote',
   chordWindowMs: 1000,
 }
@@ -94,6 +99,9 @@ interface AppState {
   shortcuts: Shortcut[]
   chords: Chord[]
   widgets: WidgetsState
+  /** Scratchpad text. Saved on every keystroke. */
+  notes: string
+  todos: Todo[]
 
   updateSettings: (patch: Partial<Settings>) => void
 
@@ -118,6 +126,13 @@ interface AppState {
   setWidgetVisible: (key: WidgetKey, visible: boolean) => void
   toggleWidget: (key: WidgetKey) => void
 
+  setNotes: (text: string) => void
+  addTodo: (text: string) => void
+  toggleTodo: (id: string) => void
+  removeTodo: (id: string) => void
+  clearCompletedTodos: () => void
+
+  /** Resets settings, shortcuts, chords and widgets. Never touches notes or todos. */
   resetAll: () => void
 }
 
@@ -129,6 +144,8 @@ export const useAppStore = create<AppState>()(
       shortcuts: defaultShortcuts,
       chords: defaultChords,
       widgets: defaultWidgets,
+      notes: '',
+      todos: [],
 
       updateSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),
 
@@ -187,6 +204,16 @@ export const useAppStore = create<AppState>()(
       setWidgetVisible: (key, visible) => set((s) => ({ widgets: { ...s.widgets, [key]: visible } })),
       toggleWidget: (key) => set((s) => ({ widgets: { ...s.widgets, [key]: !s.widgets[key] } })),
 
+      setNotes: (text) => set({ notes: text.slice(0, MAX_NOTES_LENGTH) }),
+      addTodo: (text) => {
+        const clean = text.trim().slice(0, MAX_TODO_LENGTH)
+        if (!clean) return
+        set((s) => ({ todos: [...s.todos, { id: newId(), text: clean, done: false, createdAt: Date.now() }] }))
+      },
+      toggleTodo: (id) => set((s) => ({ todos: s.todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) })),
+      removeTodo: (id) => set((s) => ({ todos: s.todos.filter((t) => t.id !== id) })),
+      clearCompletedTodos: () => set((s) => ({ todos: s.todos.filter((t) => !t.done) })),
+
       resetAll: () =>
         set({
           settings: defaultSettings,
@@ -220,7 +247,8 @@ export const useAppStore = create<AppState>()(
         }
         return state as AppState
       },
-      storage: createJSONStorage(() => createChromeStorage('sync')),
+      // Settings sync across devices; notes and todos stay on this device (chrome.storage.local, no 8KB cap).
+      storage: createJSONStorage(() => createSplitStorage(['notes', 'todos'])),
       // Persist data only, never action functions.
       partialize: (s) => ({
         settings: s.settings,
@@ -228,6 +256,8 @@ export const useAppStore = create<AppState>()(
         shortcuts: s.shortcuts,
         chords: s.chords,
         widgets: s.widgets,
+        notes: s.notes,
+        todos: s.todos,
       }),
       // Shallow-merge each slice so keys added in future versions get their defaults.
       merge: (persisted, current) => {
@@ -244,4 +274,4 @@ export const useAppStore = create<AppState>()(
 )
 
 // Keep multiple open tabs (and other devices via sync) in step with each other.
-subscribeToExternalChanges(STORAGE_KEY, () => void useAppStore.persist.rehydrate())
+subscribeToExternalChanges(splitKeys(STORAGE_KEY), () => void useAppStore.persist.rehydrate())
