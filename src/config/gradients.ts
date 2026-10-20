@@ -31,6 +31,7 @@ function preset(id: string, name: string, base: string, colors: [string, string,
 }
 
 export const GRADIENTS: GradientPreset[] = [
+  preset('aurora', 'Aurora', '#07060f', ['#7c3aed', '#22d3ee', '#e11d48']),
   preset('blue-hour', 'Blue hour', '#0b1026', ['#3b4cca', '#7a5cff', '#1fb5d4']),
   preset('sodium-lamp', 'Sodium lamp', '#1a0f05', ['#ff8a1f', '#c2410c', '#fbbf24']),
   preset('tidepool', 'Tidepool', '#04201f', ['#14b8a6', '#0ea5e9', '#2dd4bf']),

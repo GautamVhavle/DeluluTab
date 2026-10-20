@@ -267,7 +267,7 @@ export function WeatherWidget({ mode }: WidgetProps) {
           </div>
         </div>
 
-        <ul className="hidden shrink-0 gap-3 sm:flex" aria-label="Forecast">
+        <ul className="hidden shrink-0 gap-3 @[24rem]:flex" aria-label="Forecast">
           {daily.slice(1, 5).map((d, i) => (
             <li key={d.date} className="flex flex-col items-center gap-1 text-xs">
               <span className="text-muted-foreground">{weekday(d.date, i + 1)}</span>

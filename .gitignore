@@ -6,6 +6,8 @@ dist
 .vite
 *.tsbuildinfo
 release
+test-results
+playwright-report
 
 # local handoff notes
 temp/

@@ -60,9 +60,10 @@
   }
 
   body {
-    /* font-sans on <body> itself: the browser gives extension pages a body font of its own, which would otherwise win over
-       the stack inherited from <html> and ignore the font picker. */
+    /* font-sans and the size on <body> itself: Chrome gives extension pages a body font and `font-size: 75%` of its own,
+       which would otherwise win over what <html> sets, ignore the font picker and shrink any text that inherits its size. */
     @apply bg-background text-foreground font-sans antialiased;
+    font-size: 1rem;
   }
 }
 
@@ -123,6 +124,19 @@
 
 /* Dashboard grid (react-grid-layout). The wiggle is on the card, not the grid item: the item's transform is its position. */
 @layer components {
+  .widget-grid .react-grid-item > .widget-shell {
+    height: 100%;
+    width: 100%;
+  }
+  .widget-grid .widget-body > * {
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+  }
+  /* The last headline fades out instead of being cut mid-line. */
+  .news-list {
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 1.75rem), transparent);
+  }
   .widget-grid .react-grid-item.react-grid-placeholder {
     background: hsl(var(--primary) / 0.16);
     border: 1px dashed hsl(var(--primary) / 0.75);

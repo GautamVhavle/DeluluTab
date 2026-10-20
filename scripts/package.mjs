@@ -77,7 +77,7 @@ if (!manifest.icons?.['128']) fail('a 128x128 icon is required by the Web Store'
 //   storage, unlimitedStorage  settings, notes, uploaded wallpapers
 //   tabs                       read tab titles and URLs when you press "Save tabs" (tab stash)
 //   alarms, notifications      finish a focus session and notify you even when no new tab is open
-const ALLOWED = new Set(['storage', 'unlimitedStorage', 'tabs', 'alarms', 'notifications'])
+const ALLOWED = new Set(['storage', 'unlimitedStorage', 'tabs', 'alarms', 'notifications', 'identity'])
 for (const p of manifest.permissions ?? []) if (!ALLOWED.has(p)) fail(`unexpected permission "${p}" (allowed: ${[...ALLOWED].join(', ')})`)
 if (manifest.host_permissions?.length) fail(`host_permissions are not expected: ${manifest.host_permissions.join(', ')}`)
 

@@ -19,4 +19,5 @@ export const widgetRegistry: Record<WidgetKey, LazyExoticComponent<ComponentType
   tabStash: load(() => import('./TabStashWidget'), 'TabStashWidget'),
   github: load(() => import('./GithubWidget'), 'GithubWidget'),
   pomodoro: load(() => import('./PomodoroWidget'), 'PomodoroWidget'),
+  spotify: load(() => import('./SpotifyWidget'), 'SpotifyWidget'),
 }

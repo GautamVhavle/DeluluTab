@@ -1,5 +1,7 @@
 export type Theme = 'dark' | 'light' | 'dynamic'
 export type LayoutMode = 'compact' | 'detailed' | 'focus'
+/** Where the command bar sends the query: a web search, or an AI chat. */
+export type CommandMode = 'web' | 'ai'
 export type ClockFormat = '12h' | '24h'
 export type TemperatureUnit = 'c' | 'f'
 export type SearchEngineId = 'google' | 'duckduckgo' | 'bing' | 'ecosia' | 'perplexity' | 'chatgpt' | 'claude'
@@ -39,6 +41,8 @@ export interface Settings {
   /** Optional, used in the greeting. */
   userName: string
   searchEngine: SearchEngineId
+  /** Search the web, or ask an AI. The bar remembers which one you used last. */
+  commandMode: CommandMode
   temperatureUnit: TemperatureUnit
   /** null = detect automatically with the browser's geolocation. */
   weatherLocation: WeatherLocation | null
@@ -130,7 +134,7 @@ export interface AiPreset {
 
 export type QuickAppsTab = 'notes' | 'todos' | 'calc'
 
-export type WidgetKey = 'clock' | 'weather' | 'search' | 'aiLauncher' | 'news' | 'quickApps' | 'tabStash' | 'github' | 'pomodoro'
+export type WidgetKey = 'clock' | 'weather' | 'search' | 'aiLauncher' | 'news' | 'quickApps' | 'tabStash' | 'github' | 'pomodoro' | 'spotify'
 export type WidgetsState = Record<WidgetKey, boolean>
 
 /** One cell in the dashboard grid. Coordinates are in grid units, not pixels. */

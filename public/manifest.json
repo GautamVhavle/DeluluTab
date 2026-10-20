@@ -3,7 +3,7 @@
   "name": "DeluluTab",
   "short_name": "DeluluTab",
   "description": "An AI-focused new tab page: search, AI launcher, tab stash, focus timer, GitHub activity, notes and more.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "minimum_chrome_version": "111",
   "chrome_url_overrides": {
     "newtab": "index.html"
@@ -13,7 +13,8 @@
     "unlimitedStorage",
     "tabs",
     "alarms",
-    "notifications"
+    "notifications",
+    "identity"
   ],
   "icons": {
     "16": "icons/icon-16.png",

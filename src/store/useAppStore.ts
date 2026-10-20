@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { saveIntegration } from '@/services/integrations'
 import { createSplitStorage, splitKeys, subscribeToExternalChanges } from '@/services/storage/chromeStorage'
 import type { Shortcut } from '@/types'
 import type { AppState } from './appState'
@@ -29,9 +30,9 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: STORAGE_KEY,
-      version: 3,
+      version: 4,
       // v1 chords carried a URL; v2 chords point at a shortcut. Re-link by URL, drop the unmatched.
-      migrate: (persisted, version) => {
+      migrate: async (persisted, version) => {
         const state = (persisted ?? {}) as Record<string, any>
         if (version < 2 && Array.isArray(state.chords)) {
           const href = (u: string) => {
@@ -48,6 +49,20 @@ export const useAppStore = create<AppState>()(
         // v3: weather/news became real widgets. If both were still at the old "off" defaults, turn them on.
         if (version < 3 && state.widgets && state.widgets.weather === false && state.widgets.news === false) {
           state.widgets = { ...state.widgets, weather: true, news: true }
+        }
+        // v4: the GitHub username became a device-only value. Layouts, widget choices and the background
+        // are the user's and are left exactly as they were; saved sizes are clamped to the new limits on load.
+        if (version < 4) {
+          const settings = { ...(state.settings ?? {}) }
+          if (typeof settings.githubUsername === 'string' && settings.githubUsername) {
+            try {
+              await saveIntegration('github', { username: settings.githubUsername })
+              settings.githubUsername = ''
+            } catch {
+              // Leave the synced username in place if local storage could not take it.
+            }
+          }
+          state.settings = settings
         }
         return state as AppState
       },

@@ -2,6 +2,7 @@
  * Everything DeluluTab starts with. A fresh install, "Restore default configuration" and the backup
  * importer (for fields a file leaves out) all read from here, so there is exactly one definition of "default".
  */
+import { WIDGET_CATALOG } from '@/config/widgetCatalog'
 import type { AiPreset, Chord, Folder, Settings, Shortcut, WidgetsState } from '@/types'
 
 export { AI_PROVIDERS } from '@/config/aiProviders'
@@ -20,15 +21,16 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
   layoutMode: 'detailed',
   backgroundSource: 'gradient',
-  gradientPreset: 'blue-hour',
+  gradientPreset: 'aurora',
   unsplashQuery: 'nature',
   backgroundRotation: 'off',
-  backgroundDim: 0,
+  backgroundDim: 12,
   backgroundBlur: 0,
   clockFormat: prefers12h() ? '12h' : '24h',
   showSeconds: false,
   userName: '',
   searchEngine: 'google',
+  commandMode: 'web',
   temperatureUnit: 'c',
   weatherLocation: null,
   newsCategory: 'tech',
@@ -72,17 +74,9 @@ export const DEFAULT_CHORDS: Chord[] = [
   { id: 'chord-gpt', sequence: 'gpt', shortcutId: 'sc-chatgpt', enabled: true },
 ]
 
-export const DEFAULT_WIDGETS: WidgetsState = {
-  clock: true,
-  weather: true,
-  search: true,
-  aiLauncher: true,
-  news: true,
-  quickApps: true,
-  tabStash: true,
-  github: true,
-  pomodoro: true,
-}
+export const DEFAULT_WIDGETS: WidgetsState = Object.fromEntries(
+  WIDGET_CATALOG.map((widget) => [widget.key, widget.defaultVisible]),
+) as WidgetsState
 
 /** Quick prompts under the AI launcher. Clicking one fills the prompt box; paste your text after it. */
 export const DEFAULT_AI_PRESETS: AiPreset[] = [

@@ -2,6 +2,7 @@
  * Geometry for the dashboard grid. Positions are grid units (x, y, w, h), saved per layout mode.
  * Pixel size comes from the grid component, so a saved layout stays valid when the window resizes.
  */
+import { WIDGET_CATALOG, catalogByKey } from '@/config/widgetCatalog'
 import type { CustomWidget, GridBreakpoint, LayoutMode, ModeLayouts, WidgetKey, WidgetLayouts, WidgetPlacement, WidgetsState } from '@/types'
 
 export const MAX_CUSTOM_WIDGETS = 8
@@ -14,39 +15,82 @@ export const GRID_BREAKPOINT_KEYS: GridBreakpoint[] = ['lg', 'md', 'sm']
 
 const SAFE_ID = /^[A-Za-z0-9-]{8,64}$/
 
-interface WidgetSpec {
-  w: number
-  h: number
-  minW: number
-  minH: number
+export const BUILTIN_WIDGETS: { key: WidgetKey; label: string; hint: string }[] = WIDGET_CATALOG.map(({ key, label, hint }) => ({ key, label, hint }))
+
+const CUSTOM_SPEC = { w: 4, h: 4, minW: 2, minH: 3, maxW: 12, maxH: 16 }
+const FOCUS_KEYS: WidgetKey[] = WIDGET_CATALOG.filter((w) => w.focus).map((w) => w.key)
+
+type Box = Pick<WidgetPlacement, 'x' | 'y' | 'w' | 'h'>
+
+/**
+ * Hand-set home positions. Detailed is a bento, Compact is a calm column, Focus is a centered stack.
+ * Widgets without an entry (and any widget added later) land underneath, at their catalog size.
+ */
+const HOME: Record<LayoutMode, Record<GridBreakpoint, Partial<Record<WidgetKey, Box>>>> = {
+  detailed: {
+    lg: {
+      clock: { x: 0, y: 0, w: 7, h: 7 },
+      weather: { x: 7, y: 0, w: 5, h: 7 },
+      search: { x: 0, y: 7, w: 12, h: 3 },
+      quickApps: { x: 0, y: 10, w: 7, h: 6 },
+      news: { x: 7, y: 10, w: 5, h: 6 },
+    },
+    md: {
+      clock: { x: 0, y: 0, w: 5, h: 6 },
+      weather: { x: 5, y: 0, w: 3, h: 6 },
+      search: { x: 0, y: 6, w: 8, h: 3 },
+      quickApps: { x: 0, y: 9, w: 8, h: 5 },
+      news: { x: 0, y: 14, w: 8, h: 8 },
+    },
+    sm: {
+      clock: { x: 0, y: 0, w: 4, h: 6 },
+      weather: { x: 0, y: 6, w: 4, h: 6 },
+      search: { x: 0, y: 12, w: 4, h: 3 },
+      quickApps: { x: 0, y: 15, w: 4, h: 6 },
+      news: { x: 0, y: 21, w: 4, h: 8 },
+    },
+  },
+  compact: {
+    lg: {
+      clock: { x: 0, y: 0, w: 8, h: 4 },
+      weather: { x: 8, y: 0, w: 4, h: 4 },
+      search: { x: 0, y: 4, w: 12, h: 2 },
+      quickApps: { x: 0, y: 6, w: 6, h: 6 },
+      news: { x: 6, y: 6, w: 6, h: 6 },
+    },
+    md: {
+      clock: { x: 0, y: 0, w: 5, h: 4 },
+      weather: { x: 5, y: 0, w: 3, h: 4 },
+      search: { x: 0, y: 4, w: 8, h: 3 },
+      quickApps: { x: 0, y: 7, w: 8, h: 5 },
+      news: { x: 0, y: 12, w: 8, h: 3 },
+    },
+    sm: {
+      clock: { x: 0, y: 0, w: 4, h: 4 },
+      weather: { x: 0, y: 4, w: 4, h: 4 },
+      search: { x: 0, y: 8, w: 4, h: 3 },
+      quickApps: { x: 0, y: 11, w: 4, h: 5 },
+      news: { x: 0, y: 16, w: 4, h: 3 },
+    },
+  },
+  focus: {
+    lg: {
+      clock: { x: 2, y: 0, w: 8, h: 6 },
+      search: { x: 2, y: 6, w: 8, h: 3 },
+      pomodoro: { x: 3, y: 9, w: 6, h: 7 },
+    },
+    md: {
+      clock: { x: 1, y: 0, w: 6, h: 6 },
+      search: { x: 0, y: 6, w: 8, h: 3 },
+      pomodoro: { x: 1, y: 9, w: 6, h: 7 },
+    },
+    sm: {
+      clock: { x: 0, y: 0, w: 4, h: 7 },
+      search: { x: 0, y: 7, w: 4, h: 3 },
+      pomodoro: { x: 0, y: 10, w: 4, h: 8 },
+    },
+  },
 }
-
-export const BUILTIN_WIDGETS: { key: WidgetKey; label: string; hint: string }[] = [
-  { key: 'clock', label: 'Clock and greeting', hint: 'Time, date and a hello' },
-  { key: 'search', label: 'Search bar', hint: 'Google, DuckDuckGo, Bing and more' },
-  { key: 'aiLauncher', label: 'AI prompt launcher', hint: 'ChatGPT, Claude, Grok, Gemini, Perplexity' },
-  { key: 'weather', label: 'Weather', hint: 'Current conditions and a 4-day forecast' },
-  { key: 'news', label: 'News', hint: 'Headlines by category' },
-  { key: 'quickApps', label: 'Quick apps', hint: 'Your shortcuts and folders' },
-  { key: 'pomodoro', label: 'Focus timer', hint: 'Pomodoro timer with ambient sounds' },
-  { key: 'github', label: 'GitHub activity', hint: 'Contribution graph and recent repositories' },
-  { key: 'tabStash', label: 'Tab stash', hint: 'Save and restore sets of tabs' },
-]
-
-const SPECS: Record<WidgetKey, WidgetSpec> = {
-  clock: { w: 6, h: 4, minW: 3, minH: 3 },
-  search: { w: 6, h: 2, minW: 3, minH: 2 },
-  aiLauncher: { w: 6, h: 4, minW: 4, minH: 3 },
-  weather: { w: 4, h: 4, minW: 3, minH: 3 },
-  news: { w: 4, h: 6, minW: 3, minH: 4 },
-  quickApps: { w: 4, h: 6, minW: 3, minH: 4 },
-  pomodoro: { w: 4, h: 5, minW: 3, minH: 4 },
-  github: { w: 8, h: 5, minW: 4, minH: 4 },
-  tabStash: { w: 4, h: 5, minW: 3, minH: 3 },
-}
-
-const CUSTOM_SPEC: WidgetSpec = { w: 4, h: 4, minW: 2, minH: 3 }
-const FOCUS_KEYS: WidgetKey[] = ['clock', 'search', 'pomodoro']
 
 export const CUSTOM_WIDGET_STARTER = {
   html: '<div class="box">\n  <p>Make something delulu.</p>\n</div>\n',
@@ -96,32 +140,65 @@ export function visibleGridIds(mode: LayoutMode, widgets: WidgetsState, custom: 
   return [...builtin, ...custom.filter((w) => w.enabled).map((w) => customGridId(w.id))]
 }
 
-function specFor(id: string): WidgetSpec {
-  return isBuiltinGridId(id) ? SPECS[id] : CUSTOM_SPEC
+function specFor(id: string) {
+  return isBuiltinGridId(id) ? catalogByKey(id).spec : CUSTOM_SPEC
+}
+
+/** The size a newly dropped widget should open at, already inside its min and max. */
+export function preferredSize(id: string, cols: number) {
+  const spec = specFor(id)
+  const limits = constraintsFor(id, cols)
+  return {
+    w: clamp(spec.w, limits.minW, limits.maxW),
+    h: clamp(spec.h, limits.minH, limits.maxH),
+  }
 }
 
 export function constraintsFor(id: string, cols: number) {
   const spec = specFor(id)
-  return { minW: Math.min(spec.minW, cols), minH: spec.minH, maxW: cols, maxH: 24 }
+  return {
+    minW: Math.min(spec.minW, cols),
+    minH: spec.minH,
+    maxW: Math.min(spec.maxW, cols),
+    maxH: spec.maxH,
+  }
 }
 
 function spanFor(id: string, cols: number, mode: LayoutMode) {
   const spec = specFor(id)
+  const limits = constraintsFor(id, cols)
+  let w: number
+  let h: number
   if (mode === 'focus') {
-    if (id === 'clock') return { w: Math.min(cols, 8), h: 5 }
-    if (id === 'search') return { w: Math.min(cols, Math.max(6, cols - 2)), h: 2 }
-    if (id === 'pomodoro') return { w: Math.min(cols, 6), h: 6 }
-    return { w: cols, h: 4 }
+    if (id === 'clock') { w = Math.min(cols, 8); h = 6 }
+    else if (id === 'search') { w = Math.min(cols, Math.max(6, cols - 2)); h = 3 }
+    else if (id === 'pomodoro') { w = Math.min(cols, 6); h = 7 }
+    else { w = cols; h = spec.h }
+  } else {
+    const scaled = Math.round(spec.w * (cols / 12))
+    w = Math.min(cols, Math.max(Math.min(spec.minW, cols), scaled))
+    h = mode === 'compact' ? Math.max(limits.minH, spec.h - 1) : spec.h
   }
-  const scaled = Math.round(spec.w * (cols / 12))
-  const w = Math.min(cols, Math.max(Math.min(spec.minW, cols), scaled))
-  const h = mode === 'compact' ? Math.max(2, spec.h - 1) : spec.h
-  return { w, h }
+  return { w: clamp(w, limits.minW, limits.maxW), h: clamp(h, limits.minH, limits.maxH) }
+}
+
+function overlaps(a: Box, b: Box) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
+}
+
+function designFor(id: string, mode: LayoutMode, bp: GridBreakpoint, cols: number): WidgetPlacement | null {
+  if (!isBuiltinGridId(id)) return null
+  const box = HOME[mode][bp][id]
+  if (!box) return null
+  const limits = constraintsFor(id, cols)
+  const w = clamp(box.w, limits.minW, limits.maxW)
+  const h = clamp(box.h, limits.minH, limits.maxH)
+  return { i: id, x: clamp(box.x, 0, Math.max(0, cols - w)), y: Math.max(0, box.y), w, h }
 }
 
 function pack(ids: string[], mode: LayoutMode, cols: number, y0: number): WidgetPlacement[] {
-  if (mode === 'focus' && y0 === 0) {
-    let y = 0
+  if (mode === 'focus') {
+    let y = y0
     return ids.map((id) => {
       const { w, h } = spanFor(id, cols, mode)
       const item = { i: id, x: Math.max(0, Math.floor((cols - w) / 2)), y, w, h }
@@ -129,27 +206,39 @@ function pack(ids: string[], mode: LayoutMode, cols: number, y0: number): Widget
       return item
     })
   }
+  const rows: WidgetPlacement[][] = []
+  let row: WidgetPlacement[] = []
   let x = 0
   let y = y0
-  let rowH = 0
-  const out: WidgetPlacement[] = []
+  const closeRow = () => {
+    if (!row.length) return
+    rows.push(row)
+    y += Math.max(...row.map((item) => item.h))
+    row = []
+    x = 0
+  }
   for (const id of ids) {
     const { w, h } = spanFor(id, cols, mode)
-    if (x > 0 && x + w > cols) {
-      y += rowH
-      x = 0
-      rowH = 0
-    }
-    out.push({ i: id, x, y, w, h })
+    if (x > 0 && x + w > cols) closeRow()
+    row.push({ i: id, x, y, w, h })
     x += w
-    rowH = Math.max(rowH, h)
-    if (x >= cols) {
-      y += rowH
-      x = 0
-      rowH = 0
-    }
+    if (x >= cols) closeRow()
   }
-  return out
+  closeRow()
+  // A row that stops short of the edge looks unfinished: hand the spare columns to its widgets, and match heights.
+  for (const items of rows) {
+    let spare = cols - items.reduce((sum, item) => sum + item.w, 0)
+    for (let k = items.length - 1; k >= 0 && spare > 0; k--) {
+      const grow = Math.min(spare, constraintsFor(items[k].i, cols).maxW - items[k].w)
+      if (grow <= 0) continue
+      items[k].w += grow
+      for (let j = k + 1; j < items.length; j++) items[j].x += grow
+      spare -= grow
+    }
+    const tallest = Math.max(...items.map((item) => item.h))
+    for (const item of items) item.h = Math.min(constraintsFor(item.i, cols).maxH, tallest)
+  }
+  return rows.flat()
 }
 
 function isAllowed(id: string, allowedCustom: Set<string> | null) {
@@ -162,12 +251,14 @@ function isAllowed(id: string, allowedCustom: Set<string> | null) {
 export function normalizePlacement(raw: { i?: unknown; x?: unknown; y?: unknown; w?: unknown; h?: unknown }, cols: number, allowedCustom: Set<string> | null): WidgetPlacement | null {
   if (typeof raw.i !== 'string' || !isAllowed(raw.i, allowedCustom)) return null
   const limits = constraintsFor(raw.i, cols)
+  const w = clamp(raw.w, limits.minW, limits.maxW)
+  const h = clamp(raw.h, limits.minH, limits.maxH)
   return {
     i: raw.i,
-    x: clamp(raw.x, 0, Math.max(0, cols - 1)),
+    x: clamp(raw.x, 0, Math.max(0, cols - w)),
     y: clamp(raw.y, 0, 200),
-    w: clamp(raw.w, limits.minW, cols),
-    h: clamp(raw.h, limits.minH, limits.maxH),
+    w,
+    h,
   }
 }
 
@@ -198,38 +289,181 @@ export function materialize(saved: WidgetLayouts, mode: LayoutMode, visibleIds: 
       return placed ? [placed] : []
     })
     const byId = new Map(kept.map((item) => [item.i, item]))
-    const missing = visibleIds.filter((id) => !byId.has(id))
-    const y0 = kept.filter((item) => visibleIds.includes(item.i)).reduce((max, item) => Math.max(max, item.y + item.h), 0)
+    const placed: WidgetPlacement[] = []
+    const missing: string[] = []
+    for (const id of visibleIds) {
+      const savedItem = byId.get(id)
+      if (savedItem) {
+        placed.push(savedItem)
+        continue
+      }
+      const designed = designFor(id, mode, bp, cols)
+      if (designed && !placed.some((item) => overlaps(item, designed))) placed.push(designed)
+      else missing.push(id)
+    }
+    const y0 = placed.reduce((max, item) => Math.max(max, item.y + item.h), 0)
     const packed = new Map(pack(missing, mode, cols, y0).map((item) => [item.i, item]))
-    const visible = visibleIds.map((id) => byId.get(id) ?? packed.get(id)!)
+    const visible = visibleIds.map((id) => placed.find((item) => item.i === id) ?? packed.get(id)!)
     const hidden = kept.filter((item) => !visibleIds.includes(item.i))
-    result[bp] = [...visible, ...hidden]
+    result[bp] = [...compactVertical(visible), ...hidden]
   }
   return result
 }
 
-export function applyIncoming(
-  prev: ModeLayouts,
-  incoming: Partial<Record<string, readonly { i: string; x: number; y: number; w: number; h: number }[]>>,
-  customIds: readonly string[],
-): ModeLayouts {
-  const allowed = new Set(customIds)
-  const next = emptyLayouts()
-  for (const bp of GRID_BREAKPOINT_KEYS) {
-    const raw = incoming[bp]
-    if (!raw) {
-      next[bp] = prev[bp] ?? []
-      continue
-    }
-    const cleaned = raw.flatMap((item) => {
-      const placed = normalizePlacement(item, GRID_COLS[bp], allowed)
-      return placed ? [placed] : []
-    })
-    const seen = new Set(cleaned.map((item) => item.i))
-    const leftovers = (prev[bp] ?? []).filter((item) => !seen.has(item.i) && isAllowed(item.i, allowed))
-    next[bp] = [...cleaned, ...leftovers]
+/** Which breakpoint the grid uses at this width. Mirrors react-grid-layout: the largest one the width exceeds. */
+export function breakpointFor(width: number): GridBreakpoint {
+  if (width > GRID_BREAKPOINTS.lg) return 'lg'
+  if (width > GRID_BREAKPOINTS.md) return 'md'
+  return 'sm'
+}
+
+/**
+ * Gravity, the same rule the grid applies on screen: each widget, top to bottom, rises until it touches
+ * another, and drops below anything it overlaps. The result has no overlaps and no floating holes.
+ */
+export function compactVertical(items: WidgetPlacement[]): WidgetPlacement[] {
+  const order = [...items].sort((a, b) => a.y - b.y || a.x - b.x)
+  const placed: WidgetPlacement[] = []
+  for (const item of order) {
+    const at = (y: number) => ({ ...item, y })
+    let y = Math.max(0, item.y)
+    while (placed.some((other) => overlaps(other, at(y)))) y++
+    while (y > 0 && !placed.some((other) => overlaps(other, at(y - 1)))) y--
+    placed.push(at(y))
   }
-  return next
+  const byId = new Map(placed.map((item) => [item.i, item]))
+  return items.map((item) => byId.get(item.i)!)
+}
+
+const within = (inner: Box, outer: Box) => inner.y >= outer.y && inner.y + inner.h <= outer.y + outer.h
+
+/**
+ * Applies a corner drag to widget `id` without leaving the row ragged. Extra width comes from empty
+ * columns first, then from neighbours in the same row (never below their minimum); width given back goes
+ * to the neighbour it touches. Neighbours that were flush with the widget follow its new height.
+ * Everything stays inside each widget's min and max.
+ */
+export function settleResize(items: WidgetPlacement[], id: string, size: { w: number; h: number }, cols: number): WidgetPlacement[] {
+  const before = items.find((item) => item.i === id)
+  if (!before) return items
+  const next = new Map(items.map((item) => [item.i, { ...item }]))
+  const me = next.get(id)!
+  const limits = constraintsFor(id, cols)
+  const wantW = clamp(size.w, limits.minW, limits.maxW)
+  const wantH = clamp(size.h, limits.minH, limits.maxH)
+  const minW = (item: WidgetPlacement) => constraintsFor(item.i, cols).minW
+  const maxW = (item: WidgetPlacement) => constraintsFor(item.i, cols).maxW
+
+  const sharesRow = (other: WidgetPlacement) => other.i !== id && other.y < before.y + before.h && other.y + other.h > before.y
+  const right = items.filter((o) => sharesRow(o) && o.x >= before.x + before.w).sort((a, b) => a.x - b.x).map((o) => next.get(o.i)!)
+  const left = items.filter((o) => sharesRow(o) && o.x + o.w <= before.x).sort((a, b) => b.x - a.x).map((o) => next.get(o.i)!)
+
+  let delta = wantW - before.w
+  if (delta > 0) {
+    const gapRight = (right[0]?.x ?? cols) - (before.x + before.w)
+    let take = Math.min(delta, gapRight)
+    me.w += take
+    delta -= take
+    for (let k = 0; k < right.length && delta > 0; k++) {
+      if (!within(right[k], before)) break
+      take = Math.min(delta, right[k].w - minW(right[k]))
+      if (take <= 0) continue
+      for (let j = 0; j <= k; j++) right[j].x += take
+      right[k].w -= take
+      me.w += take
+      delta -= take
+    }
+    const gapLeft = before.x - (left[0] ? left[0].x + left[0].w : 0)
+    take = Math.min(delta, gapLeft)
+    me.x -= take
+    me.w += take
+    delta -= take
+    for (let k = 0; k < left.length && delta > 0; k++) {
+      if (!within(left[k], before)) break
+      take = Math.min(delta, left[k].w - minW(left[k]))
+      if (take <= 0) continue
+      for (let j = 0; j < k; j++) left[j].x -= take
+      left[k].w -= take
+      me.x -= take
+      me.w += take
+      delta -= take
+    }
+  } else if (delta < 0) {
+    let spare = -delta
+    me.w = wantW
+    const touchingRight = right[0] && right[0].x === before.x + before.w && within(right[0], before) ? right[0] : null
+    if (touchingRight) {
+      const grow = Math.min(spare, maxW(touchingRight) - touchingRight.w)
+      touchingRight.x -= grow
+      touchingRight.w += grow
+      spare -= grow
+    }
+    const touchingLeft = left[0] && left[0].x + left[0].w === before.x && within(left[0], before) ? left[0] : null
+    if (touchingLeft && spare > 0) {
+      const grow = Math.min(spare, maxW(touchingLeft) - touchingLeft.w)
+      touchingLeft.w += grow
+      me.x += grow
+    }
+  }
+
+  if (wantH !== before.h) {
+    for (const other of [...left, ...right]) {
+      if (other.y !== before.y || other.h !== before.h) continue
+      const bounds = constraintsFor(other.i, cols)
+      other.h = clamp(wantH, bounds.minH, bounds.maxH)
+    }
+    me.h = wantH
+  }
+
+  return compactVertical(items.map((item) => next.get(item.i)!))
+}
+
+export type NudgeDirection = 'left' | 'right' | 'up' | 'down'
+
+/** Keyboard move: trades places with the touching neighbour in that direction, or steps one cell into empty space. */
+export function nudgeWidget(items: WidgetPlacement[], id: string, direction: NudgeDirection, cols: number): WidgetPlacement[] {
+  const before = items.find((item) => item.i === id)
+  if (!before) return items
+  const next = new Map(items.map((item) => [item.i, { ...item }]))
+  const me = next.get(id)!
+  const columnsMeet = (o: Box) => o.x < before.x + before.w && o.x + o.w > before.x
+  const rowsMeet = (o: Box) => o.y < before.y + before.h && o.y + o.h > before.y
+  const others = items.filter((item) => item.i !== id)
+
+  if (direction === 'up') {
+    const above = others.filter((o) => columnsMeet(o) && o.y + o.h <= before.y).sort((a, b) => b.y + b.h - (a.y + a.h))[0]
+    if (!above) return items
+    const other = next.get(above.i)!
+    me.y = above.y
+    other.y = above.y + before.h
+  } else if (direction === 'down') {
+    const below = others.filter((o) => columnsMeet(o) && o.y >= before.y + before.h).sort((a, b) => a.y - b.y)[0]
+    if (!below) return items
+    const other = next.get(below.i)!
+    other.y = before.y
+    me.y = before.y + below.h
+  } else {
+    const step = direction === 'right' ? 1 : -1
+    const neighbour = others
+      .filter((o) => rowsMeet(o) && (step > 0 ? o.x === before.x + before.w : o.x + o.w === before.x))
+      .sort((a, b) => a.y - b.y)[0]
+    if (neighbour) {
+      const other = next.get(neighbour.i)!
+      if (step > 0) {
+        other.x = before.x
+        me.x = before.x + neighbour.w
+      } else {
+        me.x = neighbour.x
+        other.x = neighbour.x + before.w
+      }
+      other.y = me.y = Math.min(before.y, neighbour.y)
+    } else {
+      const x = clamp(before.x + step, 0, cols - before.w)
+      if (x === before.x) return items
+      me.x = x
+    }
+  }
+  return compactVertical(items.map((item) => next.get(item.i)!))
 }
 
 export function stripGridId(layouts: WidgetLayouts, gridId: string): WidgetLayouts {

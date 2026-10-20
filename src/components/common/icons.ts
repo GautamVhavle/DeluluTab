@@ -52,6 +52,7 @@ export {
   FaStar as Star,
   FaCodeBranch as Branch,
   FaGithub as Github,
+  FaSpotify as Spotify,
   FaFire as Flame,
   FaPenToSquare as Edit,
   FaVolumeHigh as VolumeOn,

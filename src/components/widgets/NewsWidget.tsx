@@ -16,7 +16,7 @@ function useNews(category: NewsCategory) {
 
 function Chips({ category, onChange }: { category: NewsCategory; onChange: (c: NewsCategory) => void }) {
   return (
-    <div role="radiogroup" aria-label="News category" className="flex gap-1">
+    <div role="radiogroup" aria-label="News category" className="flex flex-wrap gap-1">
       {NEWS_CATEGORIES.map((c) => (
         <button
           key={c.id}
@@ -115,7 +115,7 @@ function Card() {
         </button>
       </div>
 
-      <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto" aria-busy={loading && !data} aria-label={`${cfg.label} headlines`}>
+      <ul className="news-list min-h-0 flex-1 space-y-1 overflow-y-auto pb-5" aria-busy={loading && !data} aria-label={`${cfg.label} headlines`}>
         {data?.slice(0, 6).map((h) => (
           <li key={h.link}>
             <a

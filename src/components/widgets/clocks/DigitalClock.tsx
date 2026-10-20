@@ -26,8 +26,8 @@ export function DigitalClock({ mode }: WidgetProps) {
 
   if (mode === 'compact') {
     return (
-      <div className="flex h-full items-baseline justify-between gap-3">
-        <Time className="text-3xl" chip="text-xs" />
+      <div className="flex h-full flex-col justify-center gap-1">
+        <Time className="text-4xl" chip="text-xs" />
         <span className="truncate text-xs text-muted-foreground">{dateLabel(now)}</span>
       </div>
     )
@@ -45,7 +45,7 @@ export function DigitalClock({ mode }: WidgetProps) {
   return (
     <div className="group/clock relative flex h-full flex-col justify-center">
       <p className="mb-2 text-sm font-medium text-muted-foreground">{greeting}</p>
-      <Time className="text-5xl sm:text-6xl" chip="text-base" />
+      <Time className="text-4xl @[22rem]:text-6xl @[36rem]:text-7xl" chip="text-base" />
       <p className="mt-2 text-sm text-muted-foreground">{dateLabel(now)}</p>
       <ClockControls />
     </div>

@@ -1,6 +1,8 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Branch, Edit, ExternalLink, Flame, Github, RefreshCw, Star } from '@/components/common/icons'
+import { WidgetSkeleton } from '@/components/widgets/WidgetFeedback'
 import { useCachedResource } from '@/hooks/useCachedResource'
+import { useIntegration } from '@/hooks/useIntegration'
 import { bestDay, buildWeeks, fetchActivity, isGithubUsername, languageColor, streaks, type ContributionDay, type GithubActivity, type GithubRepo } from '@/services/github'
 import { timeAgo } from '@/services/news'
 import { cn } from '@/utils/cn'
@@ -81,7 +83,7 @@ function UsernameForm({ initial, onSubmit, onCancel }: { initial: string; onSubm
   return (
     <form onSubmit={submit} className="grid gap-2">
       <div className="flex gap-2">
-        <Input autoFocus value={value} maxLength={40} onChange={(e) => { setValue(e.target.value); setError('') }} onKeyDown={(e) => e.key === 'Escape' && onCancel && (e.stopPropagation(), onCancel())} placeholder="Your GitHub username" aria-label="GitHub username" autoComplete="off" spellCheck={false} className="h-8" />
+        <Input autoFocus={Boolean(onCancel)} value={value} maxLength={40} onChange={(e) => { setValue(e.target.value); setError('') }} onKeyDown={(e) => e.key === 'Escape' && onCancel && (e.stopPropagation(), onCancel())} placeholder="Your GitHub username" aria-label="GitHub username" autoComplete="off" spellCheck={false} className="h-8" />
         <Button type="submit" size="sm" disabled={!value.trim()}>Show activity</Button>
         {onCancel && <Button type="button" size="sm" variant="ghost" onClick={onCancel}>Cancel</Button>}
       </div>
@@ -104,24 +106,34 @@ function Summary({ activity, compact }: { activity: GithubActivity; compact?: bo
 }
 
 export function GithubWidget({ mode }: WidgetProps) {
-  const username = useAppStore((s) => s.settings.githubUsername)
+  const { values, ready, save } = useIntegration('github')
+  const synced = useAppStore((s) => s.settings.githubUsername)
   const updateSettings = useAppStore((s) => s.updateSettings)
+  const username = values.username || (!ready ? '' : synced)
   const [editing, setEditing] = useState(false)
   const compact = mode === 'compact'
 
+  useEffect(() => {
+    if (!ready || values.username || !synced) return
+    void save({ username: synced }).then(() => updateSettings({ githubUsername: '' }))
+  }, [ready, values.username, synced, save, updateSettings])
+
   const { data, error, loading, refresh } = useCachedResource(username ? `github:${username.toLowerCase()}` : null, (signal) => fetchActivity(username, signal), TTL_MS)
 
-  const save = (name: string) => {
-    updateSettings({ githubUsername: name })
+  const saveName = (name: string) => {
+    void save({ username: name })
+    if (synced) updateSettings({ githubUsername: '' })
     setEditing(false)
   }
+
+  if (!ready) return <WidgetSkeleton label="Loading GitHub" />
 
   if (!username || editing) {
     return (
       <div className="flex h-full flex-col justify-center gap-3">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground"><Github aria-hidden /> GitHub activity</div>
-        <UsernameForm initial={username} onSubmit={save} onCancel={username ? () => setEditing(false) : undefined} />
-        <p className="text-xs text-muted-foreground">Shows your public contributions and recent repositories. No sign-in or token needed.</p>
+        <UsernameForm initial={username} onSubmit={saveName} onCancel={username ? () => setEditing(false) : undefined} />
+        <p className="text-xs text-muted-foreground">Your username stays on this device and is not synced. Only that name is sent, to load your public graph. No token.</p>
       </div>
     )
   }
@@ -154,10 +166,12 @@ export function GithubWidget({ mode }: WidgetProps) {
       </div>
 
       {!data && loading && (
-        <div aria-busy className="grid gap-2">
-          <div className="h-3 w-2/3 animate-pulse rounded bg-secondary/60" />
-          <div className="h-28 animate-pulse rounded-lg bg-secondary/40" />
-        </div>
+        <WidgetSkeleton label="Loading GitHub activity">
+          <div className="h-3 w-1/2 animate-pulse rounded-full bg-foreground/10" />
+          <div className="grid flex-1 grid-cols-12 gap-1">
+            {Array.from({ length: 12 * 7 }, (_, i) => <span key={i} className="aspect-square animate-pulse rounded-[3px] bg-foreground/10" />)}
+          </div>
+        </WidgetSkeleton>
       )}
 
       {!data && error && (

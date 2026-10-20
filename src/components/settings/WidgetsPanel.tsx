@@ -1,29 +1,17 @@
-import { useState } from 'react'
-import type { IconType } from 'react-icons'
+import { useEffect, useState } from 'react'
 import { isGithubUsername } from '@/services/github'
-import { Archive, Clock, Code, Coffee, Edit, Github, Newspaper, Plus, Search, Sparkles, Trash2, Widgets } from '@/components/common/icons'
-import { FaCloudSun } from 'react-icons/fa6'
+import { Code, Edit, Plus, Trash2 } from '@/components/common/icons'
+import { WIDGET_ICONS } from '@/components/widgets/widgetIcons'
+import { useIntegration } from '@/hooks/useIntegration'
 import { BUILTIN_WIDGETS, MAX_CUSTOM_WIDGETS } from '@/utils/widgetLayout'
 import { AI_PROVIDERS, NEWS_CATEGORIES, SEARCH_ENGINES } from '@/config/defaults'
 import { cn } from '@/utils/cn'
-import { useAppStore, type AiProviderId, type ClockFormat, type NewsCategory, type SearchEngineId, type TemperatureUnit, type WidgetKey } from '@/store/useAppStore'
+import { useAppStore, type AiProviderId, type ClockFormat, type NewsCategory, type SearchEngineId, type TemperatureUnit } from '@/store/useAppStore'
 import { Button } from '@/components/common/button'
 import { Input } from '@/components/common/input'
 import { ClockStylePicker } from './ClockStylePicker'
 import { Switch } from '@/components/common/switch'
 import { Row, Section, Segmented, SliderRow, selectClass } from './SettingsUi'
-
-const ICONS: Record<WidgetKey, IconType> = {
-  clock: Clock,
-  search: Search,
-  aiLauncher: Sparkles,
-  weather: FaCloudSun,
-  news: Newspaper,
-  quickApps: Widgets,
-  pomodoro: Coffee,
-  github: Github,
-  tabStash: Archive,
-}
 
 export function WidgetsPanel({ onClose }: { onClose: () => void }) {
   const widgets = useAppStore((s) => s.widgets)
@@ -41,10 +29,10 @@ export function WidgetsPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="grid gap-7">
-      <Section title="Show on the dashboard" hint="Each widget has its own switch. Focus layout shows only the clock, search bar and focus timer.">
+      <Section title="Show on the dashboard" hint="Edit mode opens a tray, like iOS: drag a widget on, or use its switch here. New widgets stay off until you add them. Focus shows the clock, search, and the timer once you add it.">
         <ul className="divide-y rounded-xl border">
           {BUILTIN_WIDGETS.map(({ key, label, hint }) => {
-            const Icon = ICONS[key]
+            const Icon = WIDGET_ICONS[key]
             return (
               <li key={key} className="flex items-center justify-between gap-3 px-3 py-2">
                 <div className="flex min-w-0 items-center gap-3">
@@ -178,10 +166,12 @@ export function WidgetsPanel({ onClose }: { onClose: () => void }) {
 }
 
 function GithubSetting() {
-  const saved = useAppStore((s) => s.settings.githubUsername)
-  const updateSettings = useAppStore((s) => s.updateSettings)
+  const { values, save } = useIntegration('github')
+  const saved = values.username ?? ''
   const [draft, setDraft] = useState(saved)
   const [error, setError] = useState('')
+
+  useEffect(() => setDraft(saved), [saved])
 
   function commit() {
     const name = draft.trim().replace(/^@/, '')
@@ -189,11 +179,11 @@ function GithubSetting() {
     if (name && !isGithubUsername(name)) return setError('GitHub usernames use letters, numbers and single hyphens.')
     setError('')
     setDraft(name)
-    updateSettings({ githubUsername: name })
+    void save({ username: name })
   }
 
   return (
-    <Section title="GitHub" hint="Your public username. Nothing is sent except that name, and no token is needed.">
+    <Section title="GitHub" hint="Your public username, stored on this device only. Nothing is sent except that name, and no token is needed.">
       <Input
         value={draft}
         maxLength={40}

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Export, Import, Restore, Warning, CheckCircle } from '@/components/common/icons'
-import { backupFileName, buildBackup, MAX_BACKUP_BYTES, parseBackup, type ParseResult } from '@/services/backup'
+import { backupFileName, buildBackup, MAX_BACKUP_BYTES, parseBackup, type BackupConnections, type ParseResult } from '@/services/backup'
+import { loadIntegration, saveIntegration } from '@/services/integrations'
 import { useAppStore } from '@/store/useAppStore'
 import { Button } from '@/components/common/button'
 import { Section } from './SettingsUi'
@@ -30,10 +31,12 @@ export function BackupPanel() {
   const [clearNotes, setClearNotes] = useState(false)
   const input = useRef<HTMLInputElement>(null)
 
-  function exportConfig() {
+  async function exportConfig() {
     const s = useAppStore.getState()
+    const [github, spotify] = await Promise.all([loadIntegration('github'), loadIntegration('spotify')])
+    const connections: BackupConnections = { githubUsername: github.username, spotifyClientId: spotify.clientId }
     const file = buildBackup(
-      { settings: s.settings, folders: s.folders, shortcuts: s.shortcuts, chords: s.chords, widgets: s.widgets, widgetLayouts: s.widgetLayouts, customWidgets: s.customWidgets, notes: s.notes, todos: s.todos, stashes: s.stashes },
+      { settings: s.settings, folders: s.folders, shortcuts: s.shortcuts, chords: s.chords, widgets: s.widgets, widgetLayouts: s.widgetLayouts, customWidgets: s.customWidgets, notes: s.notes, todos: s.todos, stashes: s.stashes, connections },
       { includeNotes, appVersion: __APP_VERSION__ },
     )
     const name = backupFileName()
@@ -54,9 +57,12 @@ export function BackupPanel() {
     if (input.current) input.current.value = ''
   }
 
-  function applyImport() {
+  async function applyImport() {
     if (!pending?.result.ok) return
-    importConfig(pending.result.data)
+    const { data } = pending.result
+    importConfig(data)
+    if (data.connections?.githubUsername) await saveIntegration('github', { username: data.connections.githubUsername })
+    if (data.connections?.spotifyClientId) await saveIntegration('spotify', { clientId: data.connections.spotifyClientId })
     setPending(null)
     setMessage('Backup imported. Your configuration has been replaced.')
   }
@@ -74,13 +80,13 @@ export function BackupPanel() {
 
   return (
     <div className="grid gap-7">
-      <Section title="Export" hint="Saves your settings, shortcuts, folders, chords and widget choices to a JSON file. Uploaded wallpapers and your Unsplash key stay on this device.">
+      <Section title="Export" hint="Saves your settings, shortcuts, folders, chords, widgets and layouts to a JSON file, plus your GitHub username and Spotify Client ID. Sign-in tokens, uploaded wallpapers and your Unsplash key never leave this device.">
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={includeNotes} onChange={(e) => setIncludeNotes(e.target.checked)} className="h-4 w-4 accent-primary" />
           Include my notes, tasks and saved tab groups
         </label>
         <div className="flex items-center gap-3">
-          <Button variant="secondary" onClick={exportConfig}><Export /> Export configuration</Button>
+          <Button variant="secondary" onClick={() => void exportConfig()}><Export /> Export configuration</Button>
           {exported && <span role="status" className="flex items-center gap-1.5 text-xs text-emerald-500"><CheckCircle /> Saved {exported}</span>}
         </div>
       </Section>
@@ -107,6 +113,7 @@ export function BackupPanel() {
               <li>{r.summary.stashes === null ? 'No saved tab groups (yours are kept)' : `${r.summary.stashes} saved tab groups (these replace yours)`}</li>
               <li>{r.summary.customWidgets === null ? 'No custom widgets (yours are kept)' : `${r.summary.customWidgets} custom widgets (these replace yours)`}</li>
               <li>{r.summary.hasLayout ? 'Saved widget positions (these replace yours)' : 'No saved widget positions (yours are kept)'}</li>
+              {r.summary.connections > 0 && <li>Widget connections (GitHub username, Spotify Client ID). Spotify asks you to sign in again.</li>}
             </ul>
             {r.warnings.length > 0 && (
               <ul role="status" className="grid gap-1 text-xs text-amber-500">
@@ -114,7 +121,7 @@ export function BackupPanel() {
               </ul>
             )}
             <div className="flex gap-2">
-              <Button size="sm" onClick={applyImport}>Replace my configuration</Button>
+              <Button size="sm" onClick={() => void applyImport()}>Replace my configuration</Button>
               <Button size="sm" variant="ghost" onClick={() => setPending(null)}>Cancel</Button>
             </div>
           </div>

@@ -32,6 +32,13 @@ export interface BackupData {
   notes?: string
   todos?: Todo[]
   stashes?: StashGroup[]
+  /** Which accounts widgets were pointed at. Never tokens: those stay on the device that signed in. */
+  connections?: BackupConnections
+}
+
+export interface BackupConnections {
+  githubUsername?: string
+  spotifyClientId?: string
 }
 
 export interface BackupFile {
@@ -53,6 +60,8 @@ export interface BackupSummary {
   /** Custom widgets included in the file, or null if the file has none. */
   customWidgets: number | null
   hasLayout: boolean
+  /** Widget connections in the file (GitHub username, Spotify Client ID). */
+  connections: number
 }
 
 export type ParseResult =
@@ -73,6 +82,8 @@ export function buildBackup(
     widgetLayouts: state.widgetLayouts ?? {},
     customWidgets: state.customWidgets ?? [],
   }
+  const connections = parseConnections(state.connections)
+  if (Object.keys(connections).length) data.connections = connections
   if (options.includeNotes) {
     data.notes = state.notes ?? ''
     data.todos = state.todos ?? []
@@ -94,6 +105,16 @@ const num = (v: unknown, min: number, max: number, fallback: number) =>
   typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : fallback
 function oneOf<T extends string>(v: unknown, allowed: readonly T[], fallback: T): T {
   return typeof v === 'string' && (allowed as readonly string[]).includes(v) ? (v as T) : fallback
+}
+
+const isSpotifyClientId = (v: unknown): v is string => typeof v === 'string' && /^[a-f0-9]{32}$/i.test(v)
+
+function parseConnections(raw: unknown): BackupConnections {
+  const r = isObject(raw) ? raw : {}
+  const out: BackupConnections = {}
+  if (typeof r.githubUsername === 'string' && isGithubUsername(r.githubUsername)) out.githubUsername = r.githubUsername
+  if (isSpotifyClientId(r.spotifyClientId)) out.spotifyClientId = r.spotifyClientId
+  return out
 }
 
 function parseSettings(raw: unknown, warnings: string[]): Settings {
@@ -119,6 +140,7 @@ function parseSettings(raw: unknown, warnings: string[]): Settings {
     showSeconds: bool(r.showSeconds, d.showSeconds),
     userName: text(r.userName, 30, d.userName),
     searchEngine: oneOf(r.searchEngine, SEARCH_ENGINES.map((e) => e.id), d.searchEngine),
+    commandMode: oneOf(r.commandMode, ['web', 'ai'], d.commandMode),
     temperatureUnit: oneOf(r.temperatureUnit, ['c', 'f'], d.temperatureUnit),
     weatherLocation: location,
     newsCategory: oneOf(r.newsCategory, NEWS_CATEGORIES.map((c) => c.id), d.newsCategory),
@@ -284,6 +306,8 @@ export function parseBackup(input: string): ParseResult {
   if (typeof data.notes === 'string') result.notes = data.notes.replace(/\u0000/g, '').slice(0, LIMITS.notes)
   if (Array.isArray(data.todos)) result.todos = parseTodos(data.todos, warnings)
   if (Array.isArray(data.stashes)) result.stashes = parseStashes(data.stashes, warnings)
+  const connections = parseConnections(data.connections)
+  if (Object.keys(connections).length) result.connections = connections
 
   return {
     ok: true,
@@ -298,6 +322,7 @@ export function parseBackup(input: string): ParseResult {
       stashes: result.stashes?.length ?? null,
       customWidgets: result.customWidgets ? result.customWidgets.length : null,
       hasLayout: result.widgetLayouts !== undefined,
+      connections: Object.keys(connections).length,
     },
   }
 }
