@@ -20,6 +20,7 @@ interface Props {
 export function ShortcutTile({ shortcut, compact, onEdit }: Props) {
   const removeShortcut = useAppStore((s) => s.removeShortcut)
   const reorderShortcut = useAppStore((s) => s.reorderShortcut)
+  const chord = useAppStore((s) => s.chords.find((c) => c.shortcutId === shortcut.id && c.enabled)?.sequence)
 
   return (
     <motion.div
@@ -53,6 +54,11 @@ export function ShortcutTile({ shortcut, compact, onEdit }: Props) {
         </span>
         {!compact && <span className="w-full truncate text-center text-xs">{shortcut.title}</span>}
       </a>
+      {chord && !compact && (
+        <kbd className="pointer-events-none absolute left-1 top-0 rounded bg-background/90 px-1 font-mono text-[9px] uppercase tracking-wider text-muted-foreground ring-1 ring-border">
+          {chord}
+        </kbd>
+      )}
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

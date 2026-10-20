@@ -2,12 +2,18 @@ export type Theme = 'dark' | 'light' | 'dynamic'
 export type LayoutMode = 'compact' | 'detailed' | 'focus'
 export type BackgroundSource = 'unsplash' | 'gradient' | 'custom'
 
+/** Physical key (KeyboardEvent.code) that starts a chord. */
+export type ChordTrigger = 'Backquote' | 'Space' | 'Semicolon'
+
 export interface Settings {
   theme: Theme
   layoutMode: LayoutMode
   backgroundSource: BackgroundSource
   /** Image URL, only used when backgroundSource === 'custom'. */
   customBackgroundUrl: string
+  chordTrigger: ChordTrigger
+  /** Max pause between chord keystrokes before the chord window closes. */
+  chordWindowMs: number
 }
 
 export interface Shortcut {
@@ -28,11 +34,12 @@ export interface Folder {
   collapsed?: boolean
 }
 
-/** GTA-style keyboard chord: type `sequence` (e.g. "gh") to trigger `action`. */
+/** GTA-style keyboard chord: press the trigger, then type `sequence` to open the shortcut. */
 export interface Chord {
   id: string
+  /** 1-6 lowercase letters/digits. */
   sequence: string
-  action: { type: 'open-url'; url: string } | { type: 'custom'; name: string }
+  shortcutId: string
   enabled: boolean
 }
 

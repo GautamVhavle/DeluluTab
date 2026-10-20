@@ -26,6 +26,7 @@ export function SearchWidget({ mode }: WidgetProps) {
           name="q"
           autoFocus
           autoComplete="off"
+          onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()}
           placeholder="Search the web or ask AI…"
           className="w-full bg-transparent outline-none placeholder:text-muted-foreground"
         />

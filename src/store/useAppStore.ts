@@ -39,6 +39,8 @@ const defaultSettings: Settings = {
   layoutMode: 'detailed',
   backgroundSource: 'gradient',
   customBackgroundUrl: '',
+  chordTrigger: 'Backquote',
+  chordWindowMs: 1000,
 }
 
 const defaultFolders: Folder[] = [{ id: 'folder-dev', title: 'Dev', icon: 'folder-code' }]
@@ -51,7 +53,10 @@ const defaultShortcuts: Shortcut[] = [
 ]
 
 const defaultChords: Chord[] = [
-  { id: 'chord-gh', sequence: 'gh', action: { type: 'open-url', url: 'https://github.com' }, enabled: true },
+  { id: 'chord-gh', sequence: 'gh', shortcutId: 'sc-github', enabled: true },
+  { id: 'chord-cl', sequence: 'cl', shortcutId: 'sc-claude', enabled: true },
+  { id: 'chord-yt', sequence: 'yt', shortcutId: 'sc-youtube', enabled: true },
+  { id: 'chord-gm', sequence: 'gm', shortcutId: 'sc-gmail', enabled: true },
 ]
 
 const defaultWidgets: WidgetsState = {
@@ -86,6 +91,8 @@ interface AppState {
   addChord: (chord: Omit<Chord, 'id'>) => string
   updateChord: (id: string, patch: Partial<Omit<Chord, 'id'>>) => void
   removeChord: (id: string) => void
+  /** Assigns, changes or (with '') clears the chord for a shortcut. */
+  setShortcutChord: (shortcutId: string, sequence: string) => void
 
   setWidgetVisible: (key: WidgetKey, visible: boolean) => void
   toggleWidget: (key: WidgetKey) => void
@@ -111,7 +118,11 @@ export const useAppStore = create<AppState>()(
       },
       updateShortcut: (id, patch) =>
         set((s) => ({ shortcuts: s.shortcuts.map((x) => (x.id === id ? { ...x, ...patch } : x)) })),
-      removeShortcut: (id) => set((s) => ({ shortcuts: s.shortcuts.filter((x) => x.id !== id) })),
+      removeShortcut: (id) =>
+        set((s) => ({
+          shortcuts: s.shortcuts.filter((x) => x.id !== id),
+          chords: s.chords.filter((c) => c.shortcutId !== id),
+        })),
       reorderShortcut: (id, direction) =>
         set((s) => ({
           shortcuts: moveWithinGroup(s.shortcuts, id, direction, (a, b) => a.folderId === b.folderId),
@@ -142,6 +153,15 @@ export const useAppStore = create<AppState>()(
       updateChord: (id, patch) =>
         set((s) => ({ chords: s.chords.map((x) => (x.id === id ? { ...x, ...patch } : x)) })),
       removeChord: (id) => set((s) => ({ chords: s.chords.filter((x) => x.id !== id) })),
+      setShortcutChord: (shortcutId, sequence) =>
+        set((s) => {
+          const existing = s.chords.find((c) => c.shortcutId === shortcutId)
+          if (!sequence) return { chords: s.chords.filter((c) => c.shortcutId !== shortcutId) }
+          if (existing) {
+            return { chords: s.chords.map((c) => (c === existing ? { ...c, sequence } : c)) }
+          }
+          return { chords: [...s.chords, { id: newId(), sequence, shortcutId, enabled: true }] }
+        }),
 
       setWidgetVisible: (key, visible) => set((s) => ({ widgets: { ...s.widgets, [key]: visible } })),
       toggleWidget: (key) => set((s) => ({ widgets: { ...s.widgets, [key]: !s.widgets[key] } })),
@@ -157,7 +177,24 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: STORAGE_KEY,
-      version: 1,
+      version: 2,
+      // v1 chords carried a URL; v2 chords point at a shortcut. Re-link by URL, drop the unmatched.
+      migrate: (persisted, version) => {
+        const state = (persisted ?? {}) as Record<string, any>
+        if (version < 2 && Array.isArray(state.chords)) {
+          const href = (u: string) => {
+            try { return new URL(u).href } catch { return u }
+          }
+          const shortcuts: Shortcut[] = state.shortcuts ?? []
+          state.chords = state.chords.flatMap((c: any) => {
+            if (c.shortcutId) return [c]
+            const target = c.action?.type === 'open-url' ? href(c.action.url) : null
+            const match = shortcuts.find((sc) => href(sc.url) === target)
+            return match ? [{ id: c.id, sequence: c.sequence, shortcutId: match.id, enabled: c.enabled !== false }] : []
+          })
+        }
+        return state as AppState
+      },
       storage: createJSONStorage(() => createChromeStorage('sync')),
       // Persist data only, never action functions.
       partialize: (s) => ({
