@@ -1,51 +1,100 @@
 import { useState } from 'react'
 import type { IconType } from 'react-icons'
 import { isGithubUsername } from '@/lib/github'
-import { Archive, Clock, Coffee, Github, Newspaper, Search, Sparkles, Widgets } from '@/lib/icons'
+import { Archive, Clock, Code, Coffee, Edit, Github, Newspaper, Plus, Search, Sparkles, Trash2, Widgets } from '@/lib/icons'
 import { FaCloudSun } from 'react-icons/fa6'
+import { BUILTIN_WIDGETS, MAX_CUSTOM_WIDGETS } from '@/lib/widgetLayout'
 import { AI_PROVIDERS, NEWS_CATEGORIES, SEARCH_ENGINES } from '@/store/defaults'
 import { cn } from '@/lib/utils'
 import { useAppStore, type AiProviderId, type ClockFormat, type NewsCategory, type SearchEngineId, type TemperatureUnit, type WidgetKey } from '@/store/useAppStore'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ClockStylePicker } from './ClockStylePicker'
 import { Switch } from '@/components/ui/switch'
 import { Row, Section, Segmented, SliderRow, selectClass } from './SettingsUi'
 
-const WIDGETS: { key: WidgetKey; label: string; hint: string; Icon: IconType }[] = [
-  { key: 'clock', label: 'Clock and greeting', hint: 'Time, date and a hello', Icon: Clock },
-  { key: 'search', label: 'Search bar', hint: 'Google, DuckDuckGo, Bing and more', Icon: Search },
-  { key: 'aiLauncher', label: 'AI prompt launcher', hint: 'ChatGPT, Claude, Grok, Gemini, Perplexity', Icon: Sparkles },
-  { key: 'weather', label: 'Weather', hint: 'Current conditions and a 4-day forecast', Icon: FaCloudSun },
-  { key: 'news', label: 'News', hint: 'Headlines by category', Icon: Newspaper },
-  { key: 'quickApps', label: 'Quick apps', hint: 'Your shortcuts and folders', Icon: Widgets },
-  { key: 'pomodoro', label: 'Focus timer', hint: 'Pomodoro timer with ambient sounds', Icon: Coffee },
-  { key: 'github', label: 'GitHub activity', hint: 'Contribution graph and recent repositories', Icon: Github },
-  { key: 'tabStash', label: 'Tab stash', hint: 'Save and restore sets of tabs', Icon: Archive },
-]
+const ICONS: Record<WidgetKey, IconType> = {
+  clock: Clock,
+  search: Search,
+  aiLauncher: Sparkles,
+  weather: FaCloudSun,
+  news: Newspaper,
+  quickApps: Widgets,
+  pomodoro: Coffee,
+  github: Github,
+  tabStash: Archive,
+}
 
-export function WidgetsPanel() {
+export function WidgetsPanel({ onClose }: { onClose: () => void }) {
   const widgets = useAppStore((s) => s.widgets)
   const setWidgetVisible = useAppStore((s) => s.setWidgetVisible)
+  const customWidgets = useAppStore((s) => s.customWidgets)
+  const addCustomWidget = useAppStore((s) => s.addCustomWidget)
+  const updateCustomWidget = useAppStore((s) => s.updateCustomWidget)
+  const removeCustomWidget = useAppStore((s) => s.removeCustomWidget)
+  const setCustomEditorId = useAppStore((s) => s.setCustomEditorId)
+  const setLayoutEditing = useAppStore((s) => s.setLayoutEditing)
   const settings = useAppStore((s) => s.settings)
   const updateSettings = useAppStore((s) => s.updateSettings)
+  const [confirmRemove, setConfirmRemove] = useState<string | null>(null)
+  const atCustomLimit = customWidgets.length >= MAX_CUSTOM_WIDGETS
 
   return (
     <div className="grid gap-7">
-      <Section title="Show on the dashboard" hint="Focus layout shows only the clock, search bar and focus timer.">
+      <Section title="Show on the dashboard" hint="Each widget has its own switch. Focus layout shows only the clock, search bar and focus timer.">
         <ul className="divide-y rounded-xl border">
-          {WIDGETS.map(({ key, label, hint, Icon }) => (
-            <li key={key} className="flex items-center justify-between gap-3 px-3 py-2">
-              <div className="flex min-w-0 items-center gap-3">
-                <Icon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium">{label}</p>
-                  <p className="truncate text-xs text-muted-foreground">{hint}</p>
+          {BUILTIN_WIDGETS.map(({ key, label, hint }) => {
+            const Icon = ICONS[key]
+            return (
+              <li key={key} className="flex items-center justify-between gap-3 px-3 py-2">
+                <div className="flex min-w-0 items-center gap-3">
+                  <Icon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">{label}</p>
+                    <p className="truncate text-xs text-muted-foreground">{hint}</p>
+                  </div>
                 </div>
-              </div>
-              <Switch aria-label={label} checked={widgets[key]} onCheckedChange={(v) => setWidgetVisible(key, v)} />
-            </li>
-          ))}
+                <Switch aria-label={label} checked={widgets[key]} onCheckedChange={(v) => setWidgetVisible(key, v)} />
+              </li>
+            )
+          })}
         </ul>
+        <Button type="button" variant="outline" onClick={() => { setLayoutEditing(true); onClose() }}>
+          <Edit /> Arrange on the dashboard
+        </Button>
+      </Section>
+
+      <Section title="Custom widgets" hint="Your own HTML, CSS and JavaScript. Code runs in a sandbox and cannot see the rest of DeluluTab. Up to 8.">
+        {customWidgets.length > 0 && (
+          <ul className="divide-y rounded-xl border">
+            {customWidgets.map((widget) => (
+              <li key={widget.id} className="flex items-center justify-between gap-2 px-3 py-2">
+                <div className="flex min-w-0 items-center gap-3">
+                  <Code className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                  <p className="truncate text-sm font-medium">{widget.name.trim() || 'Custom widget'}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <Button type="button" variant="ghost" size="icon" aria-label={`Edit ${widget.name || 'custom widget'}`} onClick={() => { setCustomEditorId(widget.id); onClose() }}>
+                    <Edit />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={confirmRemove === widget.id ? `Confirm delete ${widget.name || 'custom widget'}` : `Delete ${widget.name || 'custom widget'}`}
+                    onClick={() => { if (confirmRemove === widget.id) removeCustomWidget(widget.id); else setConfirmRemove(widget.id) }}
+                  >
+                    <Trash2 />
+                  </Button>
+                  <Switch aria-label={`Show ${widget.name || 'custom widget'}`} checked={widget.enabled} onCheckedChange={(enabled) => updateCustomWidget(widget.id, { enabled })} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <Button type="button" onClick={() => { if (addCustomWidget()) onClose() }} disabled={atCustomLimit}>
+          <Plus /> {atCustomLimit ? 'Custom widget limit reached' : 'Add custom widget'}
+        </Button>
       </Section>
 
       <Section title="Defaults">

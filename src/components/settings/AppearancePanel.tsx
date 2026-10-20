@@ -13,7 +13,7 @@ import { Row, Section, Segmented, SliderRow } from './SettingsUi'
 const LAYOUTS: { value: LayoutMode; label: string; hint: string; Icon: IconType }[] = [
   { value: 'compact', label: 'Compact', hint: 'Tight and minimal', Icon: Rows3 },
   { value: 'detailed', label: 'Detailed', hint: 'Full dashboard grid', Icon: LayoutGrid },
-  { value: 'focus', label: 'Focus', hint: 'Just clock and search', Icon: Focus },
+  { value: 'focus', label: 'Focus', hint: 'Clock, search and timer', Icon: Focus },
 ]
 
 export function AppearancePanel({ onOpenBackground }: { onOpenBackground: () => void }) {

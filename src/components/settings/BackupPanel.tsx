@@ -33,7 +33,7 @@ export function BackupPanel() {
   function exportConfig() {
     const s = useAppStore.getState()
     const file = buildBackup(
-      { settings: s.settings, folders: s.folders, shortcuts: s.shortcuts, chords: s.chords, widgets: s.widgets, notes: s.notes, todos: s.todos, stashes: s.stashes },
+      { settings: s.settings, folders: s.folders, shortcuts: s.shortcuts, chords: s.chords, widgets: s.widgets, widgetLayouts: s.widgetLayouts, customWidgets: s.customWidgets, notes: s.notes, todos: s.todos, stashes: s.stashes },
       { includeNotes, appVersion: __APP_VERSION__ },
     )
     const name = backupFileName()
@@ -105,6 +105,8 @@ export function BackupPanel() {
               <li>{r.summary.chords} chords</li>
               <li>{r.summary.hasNotes ? `Notes and ${r.summary.todos} tasks (these replace yours)` : 'No notes or tasks (yours are kept)'}</li>
               <li>{r.summary.stashes === null ? 'No saved tab groups (yours are kept)' : `${r.summary.stashes} saved tab groups (these replace yours)`}</li>
+              <li>{r.summary.customWidgets === null ? 'No custom widgets (yours are kept)' : `${r.summary.customWidgets} custom widgets (these replace yours)`}</li>
+              <li>{r.summary.hasLayout ? 'Saved widget positions (these replace yours)' : 'No saved widget positions (yours are kept)'}</li>
             </ul>
             {r.warnings.length > 0 && (
               <ul role="status" className="grid gap-1 text-xs text-amber-500">
@@ -119,7 +121,7 @@ export function BackupPanel() {
         )}
       </Section>
 
-      <Section title="Restore default configuration" hint="Puts settings, shortcuts, chords and widgets back to how DeluluTab starts. Notes, tasks and saved tab groups are kept unless you choose otherwise.">
+      <Section title="Restore default configuration" hint="Puts settings, shortcuts, chords, widgets and the dashboard layout back to how DeluluTab starts. Notes, tasks, saved tab groups and custom widgets are kept unless you choose otherwise.">
         {!confirmRestore ? (
           <div>
             <Button variant="outline" onClick={() => setConfirmRestore(true)}><Restore /> Restore defaults…</Button>
@@ -129,7 +131,7 @@ export function BackupPanel() {
             <p className="text-sm">This replaces your current configuration. It can't be undone.</p>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={clearNotes} onChange={(e) => setClearNotes(e.target.checked)} className="h-4 w-4 accent-primary" />
-              Also delete my notes, tasks and saved tab groups
+              Also delete my notes, tasks, saved tab groups and custom widgets
             </label>
             <div className="flex gap-2">
               <Button size="sm" variant="destructive" onClick={restore} className="bg-red-600 text-white hover:bg-red-600/90">Restore defaults</Button>

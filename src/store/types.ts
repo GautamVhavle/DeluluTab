@@ -132,3 +132,27 @@ export type QuickAppsTab = 'notes' | 'todos' | 'calc'
 
 export type WidgetKey = 'clock' | 'weather' | 'search' | 'aiLauncher' | 'news' | 'quickApps' | 'tabStash' | 'github' | 'pomodoro'
 export type WidgetsState = Record<WidgetKey, boolean>
+
+/** One cell in the dashboard grid. Coordinates are in grid units, not pixels. */
+export interface WidgetPlacement {
+  i: string
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+export type GridBreakpoint = 'lg' | 'md' | 'sm'
+export type ModeLayouts = Record<GridBreakpoint, WidgetPlacement[]>
+/** Saved per layout mode, so Detailed, Compact and Focus remember their own arrangements. */
+export type WidgetLayouts = Partial<Record<LayoutMode, ModeLayouts>>
+
+/** User-authored widget. Its code runs in a sandboxed frame, not in the extension page. */
+export interface CustomWidget {
+  id: string
+  name: string
+  html: string
+  css: string
+  js: string
+  enabled: boolean
+}

@@ -120,3 +120,39 @@
     .flip-flap-top, .flip-flap-bottom { display: none; }
   }
 }
+
+/* Dashboard grid (react-grid-layout). The wiggle is on the card, not the grid item: the item's transform is its position. */
+@layer components {
+  .widget-grid .react-grid-item.react-grid-placeholder {
+    background: hsl(var(--primary) / 0.16);
+    border: 1px dashed hsl(var(--primary) / 0.75);
+    border-radius: 1rem;
+    opacity: 1;
+  }
+  .widget-grid:not(.is-editing) .react-grid-item > .react-resizable-handle {
+    display: none;
+  }
+  .widget-grid.is-editing .react-grid-item > .react-resizable-handle {
+    opacity: 1;
+  }
+  .widget-grid .react-grid-item > .react-resizable-handle::after {
+    border-color: hsl(var(--foreground) / 0.55);
+  }
+  .widget-grid:not(.is-editing) .react-grid-item img {
+    pointer-events: auto;
+  }
+  .widget-grid.is-editing .widget-card {
+    animation: widget-wiggle 0.32s ease-in-out infinite;
+  }
+  .widget-grid .react-draggable-dragging .widget-card,
+  .widget-grid .resizing .widget-card {
+    animation: none;
+  }
+  @keyframes widget-wiggle {
+    0%, 100% { transform: rotate(-0.6deg); }
+    50% { transform: rotate(0.6deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .widget-grid.is-editing .widget-card { animation: none; }
+  }
+}

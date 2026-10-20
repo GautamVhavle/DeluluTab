@@ -22,7 +22,11 @@
     "128": "icons/icon-128.png"
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
+    "extension_pages": "script-src 'self'; object-src 'self'",
+    "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox; script-src 'unsafe-inline'; style-src 'unsafe-inline'; frame-src https: data: blob:; object-src 'none'"
+  },
+  "sandbox": {
+    "pages": ["widget-sandbox.html"]
   },
   "background": {
     "service_worker": "background.js",

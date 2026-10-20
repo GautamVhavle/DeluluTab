@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
-import { Gear, ImageIcon, Moon, Sun } from '@/lib/icons'
+import { Edit, Gear, ImageIcon, Moon, Sun } from '@/lib/icons'
 import { Button } from '@/components/ui/button'
 import { BackgroundEngine } from '@/components/background/BackgroundEngine'
 import { ChordHud } from '@/components/chords/ChordHud'
@@ -7,6 +7,7 @@ import { TabHeader } from '@/components/common/TabHeader'
 import { DashboardLayout } from '@/components/DashboardLayout'
 import { ModeSwitcher } from '@/components/ModeSwitcher'
 import { QuickAppsDrawer } from '@/components/quickapps/QuickAppsDrawer'
+import { CustomWidgetEditor } from '@/components/widgets/CustomCodeWidget'
 import { useApplyAppearance } from '@/hooks/use-appearance'
 import { useApplyFont } from '@/hooks/use-font'
 import { useBootAnimation } from '@/hooks/use-boot-animation'
@@ -42,6 +43,8 @@ export default function App() {
   const [backgroundOpen, setBackgroundOpen] = useState(false)
 
   const updateSettings = useAppStore((s) => s.updateSettings)
+  const layoutEditing = useAppStore((s) => s.layoutEditing)
+  const setLayoutEditing = useAppStore((s) => s.setLayoutEditing)
   const isDark = useIsDark()
 
   return (
@@ -57,6 +60,14 @@ export default function App() {
           <header data-boot="header" className="flex items-center justify-between px-6 py-4">
             <TabHeader />
             <div className="flex items-center gap-1">
+              <Button
+                variant={layoutEditing ? 'default' : 'ghost'}
+                size="sm"
+                aria-pressed={layoutEditing}
+                onClick={() => setLayoutEditing(!layoutEditing)}
+              >
+                {layoutEditing ? 'Done' : <><Edit /> Edit</>}
+              </Button>
               <Button variant="ghost" size="icon" onClick={() => setSettingsOpen(true)} aria-label="Settings">
                 <Gear />
               </Button>
@@ -93,6 +104,7 @@ export default function App() {
           </MountOnFirstOpen>
           <ModeSwitcher />
           <QuickAppsDrawer />
+          <CustomWidgetEditor />
         </>
       )}
     </div>

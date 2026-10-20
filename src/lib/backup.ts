@@ -10,8 +10,9 @@ import { SEARCH_ENGINES } from './searchEngines'
 import { MAX_TAB_TITLE } from './tabTitle'
 import { cleanStashName, cleanTabs, MAX_STASH_GROUPS } from './stash'
 import { hostnameOf, normalizeUrl } from './url'
+import { parseStoredCustomWidgets, parseStoredLayouts } from '@/lib/widgetLayout'
 import { DEFAULT_SETTINGS, DEFAULT_WIDGETS } from '@/store/defaults'
-import type { Chord, Folder, Settings, Shortcut, StashGroup, Todo, WidgetKey, WidgetsState } from '@/store/types'
+import type { Chord, CustomWidget, Folder, Settings, Shortcut, StashGroup, Todo, WidgetKey, WidgetLayouts, WidgetsState } from '@/store/types'
 
 export const BACKUP_APP = 'DeluluTab'
 export const BACKUP_FORMAT = 1
@@ -25,6 +26,8 @@ export interface BackupData {
   shortcuts: Shortcut[]
   chords: Chord[]
   widgets: WidgetsState
+  widgetLayouts?: WidgetLayouts
+  customWidgets?: CustomWidget[]
   /** Present only when the backup was made with notes and tasks included. */
   notes?: string
   todos?: Todo[]
@@ -47,6 +50,9 @@ export interface BackupSummary {
   todos: number
   /** Saved tab groups included in the file, or null if the file has none. */
   stashes: number | null
+  /** Custom widgets included in the file, or null if the file has none. */
+  customWidgets: number | null
+  hasLayout: boolean
 }
 
 export type ParseResult =
@@ -64,6 +70,8 @@ export function buildBackup(
     shortcuts: state.shortcuts,
     chords: state.chords,
     widgets: state.widgets,
+    widgetLayouts: state.widgetLayouts ?? {},
+    customWidgets: state.customWidgets ?? [],
   }
   if (options.includeNotes) {
     data.notes = state.notes ?? ''
@@ -268,6 +276,11 @@ export function parseBackup(input: string): ParseResult {
     chords,
     widgets: parseWidgets(data.widgets),
   }
+  if (Array.isArray(data.customWidgets)) result.customWidgets = parseStoredCustomWidgets(data.customWidgets, warnings)
+  if (isObject(data.widgetLayouts)) {
+    const allowed = result.customWidgets ? new Set(result.customWidgets.map((w) => w.id)) : null
+    result.widgetLayouts = parseStoredLayouts(data.widgetLayouts, allowed, warnings)
+  }
   if (typeof data.notes === 'string') result.notes = data.notes.replace(/\u0000/g, '').slice(0, LIMITS.notes)
   if (Array.isArray(data.todos)) result.todos = parseTodos(data.todos, warnings)
   if (Array.isArray(data.stashes)) result.stashes = parseStashes(data.stashes, warnings)
@@ -276,6 +289,15 @@ export function parseBackup(input: string): ParseResult {
     ok: true,
     data: result,
     warnings,
-    summary: { shortcuts: shortcuts.length, folders: folders.length, chords: chords.length, hasNotes: result.notes !== undefined, todos: result.todos?.length ?? 0, stashes: result.stashes?.length ?? null },
+    summary: {
+      shortcuts: shortcuts.length,
+      folders: folders.length,
+      chords: chords.length,
+      hasNotes: result.notes !== undefined,
+      todos: result.todos?.length ?? 0,
+      stashes: result.stashes?.length ?? null,
+      customWidgets: result.customWidgets ? result.customWidgets.length : null,
+      hasLayout: result.widgetLayouts !== undefined,
+    },
   }
 }

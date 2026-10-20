@@ -79,6 +79,9 @@ export {
   FaRotateLeft as Restore,
   FaTriangleExclamation as Warning,
   FaCircleCheck as CheckCircle,
+  FaGripVertical as Grip,
+  FaCode as Code,
+  FaMinus as Minus,
 } from 'react-icons/fa6'
 
 export {

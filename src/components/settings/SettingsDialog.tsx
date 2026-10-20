@@ -89,7 +89,7 @@ export function SettingsDialog({ open, onOpenChange, onOpenBackground }: Props) 
           <h2 className="mb-6 text-lg font-semibold tracking-tight">{current.title}</h2>
           {tab === 'general' && <GeneralPanel />}
           {tab === 'appearance' && <AppearancePanel onOpenBackground={onOpenBackground} />}
-          {tab === 'widgets' && <WidgetsPanel />}
+          {tab === 'widgets' && <WidgetsPanel onClose={() => onOpenChange(false)} />}
           {tab === 'chords' && <ChordsPanel />}
           {tab === 'backup' && <BackupPanel />}
         </div>

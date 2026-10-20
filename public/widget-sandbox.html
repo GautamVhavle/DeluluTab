@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Widget</title>
+    <style>
+      html, body { height: 100%; margin: 0; background: transparent; }
+      html[data-theme="dark"] { color: #e2e8f0; color-scheme: dark; }
+      html[data-theme="light"] { color: #0f172a; color-scheme: light; }
+      #root, #root > .user { height: 100%; }
+      #root > .user { min-height: 100%; box-sizing: border-box; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // Message names match src/lib/widgetSandbox.ts. This page is sandboxed: no chrome APIs, no parent DOM.
+      var RENDER = 'delulutab:render'
+      var ERROR = 'delulutab:error'
+      var MAX = 24000
+      var timers = []
+      var setInterval_ = window.setInterval
+      var setTimeout_ = window.setTimeout
+      window.setInterval = function (fn, ms) {
+        var id = setInterval_(fn, ms)
+        timers.push(id)
+        return id
+      }
+      window.setTimeout = function (fn, ms) {
+        var id = setTimeout_(fn, ms)
+        timers.push(id)
+        return id
+      }
+      function clearTimers() {
+        for (var i = 0; i < timers.length; i++) {
+          clearInterval(timers[i])
+          clearTimeout(timers[i])
+        }
+        timers = []
+      }
+      function asCode(value) {
+        return typeof value === 'string' ? value.slice(0, MAX) : ''
+      }
+      function report(error) {
+        var message = error && error.message ? String(error.message) : 'This widget hit a script error.'
+        parent.postMessage({ type: ERROR, message: message.slice(0, 300) }, '*')
+      }
+      window.addEventListener('error', function (event) { report(event.error || event) })
+      window.addEventListener('unhandledrejection', function (event) { report(event.reason) })
+
+      function mount(data) {
+        clearTimers()
+        document.documentElement.dataset.theme = data.theme === 'light' ? 'light' : 'dark'
+        var previous = document.getElementById('user-style')
+        if (previous) previous.remove()
+        var style = document.createElement('style')
+        style.id = 'user-style'
+        style.textContent = asCode(data.css)
+        document.head.appendChild(style)
+
+        var root = document.getElementById('root')
+        root.replaceChildren()
+        var holder = document.createElement('div')
+        holder.className = 'user'
+        holder.innerHTML = asCode(data.html)
+        holder.querySelectorAll('base, meta, object, embed').forEach(function (node) { node.remove() })
+        var inline = []
+        holder.querySelectorAll('script').forEach(function (node) {
+          if (!node.src && node.textContent) inline.push(node.textContent.slice(0, MAX))
+          node.remove()
+        })
+        holder.querySelectorAll('a').forEach(function (node) {
+          if (!node.target) node.target = '_blank'
+          node.rel = 'noreferrer noopener'
+        })
+        root.appendChild(holder)
+        document.querySelectorAll('script[data-user]').forEach(function (node) { node.remove() })
+        inline.push(asCode(data.js))
+        inline.forEach(function (code) {
+          if (!code) return
+          var script = document.createElement('script')
+          script.dataset.user = '1'
+          script.textContent = code
+          document.body.appendChild(script)
+        })
+      }
+
+      window.addEventListener('message', function (event) {
+        if (event.source !== window.parent) return
+        var data = event.data
+        if (!data || data.type !== RENDER) return
+        try { mount(data) } catch (error) { report(error) }
+      })
+    </script>
+  </body>
+</html>
