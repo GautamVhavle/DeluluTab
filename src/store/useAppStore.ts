@@ -38,7 +38,11 @@ const defaultSettings: Settings = {
   theme: 'dark',
   layoutMode: 'detailed',
   backgroundSource: 'gradient',
-  customBackgroundUrl: '',
+  gradientPreset: 'blue-hour',
+  unsplashQuery: 'nature',
+  backgroundRotation: 'off',
+  backgroundDim: 0,
+  backgroundBlur: 0,
   chordTrigger: 'Backquote',
   chordWindowMs: 1000,
 }

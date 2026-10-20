@@ -1,6 +1,7 @@
 export type Theme = 'dark' | 'light' | 'dynamic'
 export type LayoutMode = 'compact' | 'detailed' | 'focus'
 export type BackgroundSource = 'unsplash' | 'gradient' | 'custom'
+export type BackgroundRotation = 'off' | 'newtab' | '1m' | '5m' | '15m' | '1h'
 
 /** Physical key (KeyboardEvent.code) that starts a chord. */
 export type ChordTrigger = 'Backquote' | 'Space' | 'Semicolon'
@@ -9,8 +10,15 @@ export interface Settings {
   theme: Theme
   layoutMode: LayoutMode
   backgroundSource: BackgroundSource
-  /** Image URL, only used when backgroundSource === 'custom'. */
-  customBackgroundUrl: string
+  /** Id from lib/gradients, shown when the slideshow is off. */
+  gradientPreset: string
+  /** Unsplash search keywords. */
+  unsplashQuery: string
+  backgroundRotation: BackgroundRotation
+  /** Extra readability overlay on top of the adaptive one, 0-60 (%). */
+  backgroundDim: number
+  /** Background blur in px, 0-20. */
+  backgroundBlur: number
   chordTrigger: ChordTrigger
   /** Max pause between chord keystrokes before the chord window closes. */
   chordWindowMs: number

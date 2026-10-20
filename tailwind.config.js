@@ -50,6 +50,16 @@ export default {
           foreground: 'hsl(var(--card-foreground))',
         },
       },
+      keyframes: {
+        // Slow wander for the gradient light blobs.
+        drift: {
+          '0%': { transform: 'translate3d(0, 0, 0) rotate(0deg) scale(1)' },
+          '100%': { transform: 'translate3d(-4%, 3%, 0) rotate(5deg) scale(1.1)' },
+        },
+      },
+      animation: {
+        drift: 'drift 48s ease-in-out infinite alternate',
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
