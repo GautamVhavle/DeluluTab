@@ -1,19 +1,30 @@
-import { useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
 import { ImageIcon, Keyboard, Moon, SlidersHorizontal, Sparkles, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BackgroundEngine } from '@/components/background/BackgroundEngine'
-import { BackgroundSettings } from '@/components/background/BackgroundSettings'
 import { ChordHud } from '@/components/chords/ChordHud'
-import { ChordManager } from '@/components/chords/ChordManager'
 import { DashboardLayout } from '@/components/DashboardLayout'
 import { ModeSwitcher } from '@/components/ModeSwitcher'
 import { QuickAppsDrawer } from '@/components/quickapps/QuickAppsDrawer'
-import { WidgetSettings } from '@/components/settings/WidgetSettings'
 import { useBootAnimation } from '@/hooks/use-boot-animation'
 import { useHydrated } from '@/hooks/use-hydrated'
 import { useKeyboardChords } from '@/hooks/useKeyboardChords'
 import { useApplyTheme, useIsDark } from '@/hooks/use-theme'
 import { useAppStore } from '@/store/useAppStore'
+
+// Settings panels are only needed once opened, so they load on demand instead of weighing down every new tab.
+const BackgroundSettings = lazy(() => import('@/components/background/BackgroundSettings').then((m) => ({ default: m.BackgroundSettings })))
+const ChordManager = lazy(() => import('@/components/chords/ChordManager').then((m) => ({ default: m.ChordManager })))
+const WidgetSettings = lazy(() => import('@/components/settings/WidgetSettings').then((m) => ({ default: m.WidgetSettings })))
+
+/** Loads and mounts its children the first time `open` is true, then keeps them mounted so close animations can play. */
+function MountOnFirstOpen({ open, children }: { open: boolean; children: ReactNode }) {
+  const [wanted, setWanted] = useState(open)
+  useEffect(() => {
+    if (open) setWanted(true)
+  }, [open])
+  return wanted ? <Suspense fallback={null}>{children}</Suspense> : null
+}
 
 export default function App() {
   useApplyTheme()
@@ -68,9 +79,15 @@ export default function App() {
             <DashboardLayout />
           </div>
 
-          <WidgetSettings open={widgetsOpen} onOpenChange={setWidgetsOpen} />
-          <BackgroundSettings open={backgroundOpen} onOpenChange={setBackgroundOpen} />
-          <ChordManager open={chordsOpen} onOpenChange={setChordsOpen} />
+          <MountOnFirstOpen open={widgetsOpen}>
+            <WidgetSettings open={widgetsOpen} onOpenChange={setWidgetsOpen} />
+          </MountOnFirstOpen>
+          <MountOnFirstOpen open={backgroundOpen}>
+            <BackgroundSettings open={backgroundOpen} onOpenChange={setBackgroundOpen} />
+          </MountOnFirstOpen>
+          <MountOnFirstOpen open={chordsOpen}>
+            <ChordManager open={chordsOpen} onOpenChange={setChordsOpen} />
+          </MountOnFirstOpen>
           <ModeSwitcher />
           <QuickAppsDrawer />
         </>

@@ -1,12 +1,9 @@
-import { useRef, useState, type KeyboardEvent } from 'react'
+import { lazy, Suspense, useRef, useState, type KeyboardEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Calculator, CheckSquare, NotebookPen, PanelRightOpen, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore, type QuickAppsTab } from '@/store/useAppStore'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { CalcApp } from './CalcApp'
-import { NotesApp } from './NotesApp'
-import { TodoApp } from './TodoApp'
 
 const TABS: { id: QuickAppsTab; label: string; Icon: LucideIcon }[] = [
   { id: 'notes', label: 'Notes', Icon: NotebookPen },
@@ -14,10 +11,11 @@ const TABS: { id: QuickAppsTab; label: string; Icon: LucideIcon }[] = [
   { id: 'calc', label: 'Calculator', Icon: Calculator },
 ]
 
-const PANELS: Record<QuickAppsTab, () => React.JSX.Element> = {
-  notes: NotesApp,
-  todos: TodoApp,
-  calc: CalcApp,
+// Each tool loads the first time its tab is shown (the calculator pulls in the parser and unit tables).
+const PANELS: Record<QuickAppsTab, React.LazyExoticComponent<() => React.JSX.Element>> = {
+  notes: lazy(() => import('./NotesApp').then((m) => ({ default: m.NotesApp }))),
+  todos: lazy(() => import('./TodoApp').then((m) => ({ default: m.TodoApp }))),
+  calc: lazy(() => import('./CalcApp').then((m) => ({ default: m.CalcApp }))),
 }
 
 /** Floating button + side drawer holding the mini tools. Named "Mini tools" in the UI to keep it distinct from the Quick apps shortcut widget. */
@@ -28,7 +26,16 @@ export function QuickAppsDrawer() {
   const openTasks = useAppStore((s) => s.todos.filter((t) => !t.done).length)
   const content = useRef<HTMLDivElement>(null)
 
-  const focusPrimaryField = () => content.current?.querySelector<HTMLElement>('[data-autofocus]')?.focus()
+  // The panel may still be loading, so retry for a few frames until its primary field exists.
+  const focusPrimaryField = () => {
+    let frames = 0
+    const tick = () => {
+      const field = content.current?.querySelector<HTMLElement>('[data-autofocus]')
+      if (field) field.focus()
+      else if (frames++ < 30) requestAnimationFrame(tick)
+    }
+    tick()
+  }
 
   const selectTab = (id: QuickAppsTab, focusField: boolean) => {
     updateSettings({ quickAppsTab: id })
@@ -123,7 +130,9 @@ export function QuickAppsDrawer() {
 
           <div id="qa-panel" role="tabpanel" aria-labelledby={`qa-tab-${tab}`} className="min-h-0 flex-1">
             <motion.div key={tab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }} className="h-full">
-              <Panel />
+              <Suspense fallback={<div aria-busy className="h-full animate-pulse rounded-xl bg-secondary/40" />}>
+                <Panel />
+              </Suspense>
             </motion.div>
           </div>
         </SheetContent>

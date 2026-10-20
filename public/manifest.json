@@ -2,12 +2,13 @@
   "manifest_version": 3,
   "name": "DeluluTab",
   "short_name": "DeluluTab",
-  "description": "A modern, AI-focused New Tab page.",
-  "version": "0.1.0",
+  "description": "An AI-focused new tab page: search, AI prompt launcher, weather, news, shortcuts, notes and more.",
+  "version": "1.0.0",
+  "minimum_chrome_version": "111",
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
-  "permissions": ["storage", "tabs", "unlimitedStorage"],
+  "permissions": ["storage", "unlimitedStorage"],
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
