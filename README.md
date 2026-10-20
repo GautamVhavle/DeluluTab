@@ -4,12 +4,13 @@ An AI-focused Chrome extension that replaces the new tab page.
 
 - **Search bar** with Google, DuckDuckGo, Bing, Ecosia, Perplexity, ChatGPT and Claude (`/` or `Ctrl/⌘+K` to focus)
 - **AI prompt launcher** (with one-click prompt presets): type a prompt, press Enter, and it opens in ChatGPT, Claude, Grok, Gemini or Perplexity in a new tab. No API keys.
-- **Clock and greeting**, **weather** (Open-Meteo, no key), **news** by category
+- **Clock and greeting** in four styles (Digital, Retro flip, Analog, World dual-timezone) with 12/24-hour and seconds options, **weather** (Open-Meteo, no key), **news** by category
 - **Shortcuts and folders**, plus **keyboard chords**: press `` ` `` then type `gh` to jump to GitHub (the trigger key is yours to change)
 - **Tab stash** (save and restore sets of tabs), **GitHub activity** (contribution graph and recent repos), and a **focus timer** with Rain, Cafe and White-noise sounds
 - **Mini tools drawer**: notes (Markdown), tasks, calculator and unit converter
 - **Backgrounds**: gradient presets, Unsplash photos, or your own images, with a slideshow and an overlay that keeps text readable
-- Compact, Detailed and Focus layouts; light, dark and system themes; text size and accent color
+- Compact, Detailed and Focus layouts; light, dark and system themes; text size and accent color, and five fonts (Inter, JetBrains Mono, Outfit, Space Grotesk, Cinzel)
+- **Official logos** for shortcuts, AI providers and search engines, with a fallback chain (official file, then Google favicon service, then a symbol); can be switched off
 - **Settings** (gear icon): tab title and icon, appearance, widgets, chords, and backup/restore of your whole configuration as a JSON file
 
 **Stack:** Vite · React 18 + TypeScript · Tailwind CSS 3 · Radix/shadcn-style UI · react-icons (FontAwesome 6 + Material) · Zustand · Framer Motion · GSAP · Manifest V3

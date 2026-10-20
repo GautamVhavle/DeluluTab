@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown, type IconType } from '@/lib/icons'
+import { PlatformLogo } from '@/components/common/PlatformLogo'
 import { engineById, SEARCH_ENGINES } from '@/lib/searchEngines'
 import { navigateTo } from '@/lib/navigate'
 import { isMac } from '@/lib/platform'
@@ -80,7 +81,7 @@ export function SearchBarWidget({ mode }: WidgetProps) {
                 focus ? 'py-2.5' : 'py-1.5',
               )}
             >
-              <engine.icon className={cn('h-4 w-4', engine.group === 'ai' ? 'text-violet-400' : 'text-muted-foreground')} />
+              <PlatformLogo url={engine.site} fallback={engine.icon} className={cn('h-4 w-4', engine.group === 'ai' ? 'text-violet-400' : 'text-muted-foreground')} />
               <span className={compact ? 'sr-only sm:not-sr-only' : undefined}>{engine.name}</span>
               <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
             </button>
@@ -96,12 +97,12 @@ export function SearchBarWidget({ mode }: WidgetProps) {
           >
             <DropdownMenuLabel>Search the web</DropdownMenuLabel>
             {web.map((e) => (
-              <EngineItem key={e.id} Icon={e.icon} name={e.name} active={e.id === engineId} onSelect={() => updateSettings({ searchEngine: e.id })} />
+              <EngineItem key={e.id} site={e.site} Icon={e.icon} name={e.name} active={e.id === engineId} onSelect={() => updateSettings({ searchEngine: e.id })} />
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Ask an AI</DropdownMenuLabel>
             {ai.map((e) => (
-              <EngineItem key={e.id} Icon={e.icon} name={e.name} active={e.id === engineId} onSelect={() => updateSettings({ searchEngine: e.id })} />
+              <EngineItem key={e.id} site={e.site} Icon={e.icon} name={e.name} active={e.id === engineId} onSelect={() => updateSettings({ searchEngine: e.id })} />
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -134,11 +135,11 @@ export function SearchBarWidget({ mode }: WidgetProps) {
   )
 }
 
-function EngineItem({ Icon, name, active, onSelect }: { Icon: IconType; name: string; active: boolean; onSelect: () => void }) {
+function EngineItem({ Icon, site, name, active, onSelect }: { Icon: IconType; site: string; name: string; active: boolean; onSelect: () => void }) {
   return (
     <DropdownMenuItem onSelect={onSelect} className="justify-between">
       <span className="flex items-center gap-2">
-        <Icon className="text-muted-foreground" />
+        <PlatformLogo url={site} fallback={Icon} className="h-4 w-4 text-muted-foreground" />
         {name}
       </span>
       {active && <Check className="text-primary" />}

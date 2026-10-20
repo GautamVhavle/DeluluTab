@@ -19,12 +19,15 @@ DeluluTab only contacts these services, and only for the feature named:
 | --- | --- | --- |
 | Open-Meteo (`api.open-meteo.com`, `geocoding-api.open-meteo.com`) | Weather widget is on | Your approximate coordinates (rounded to about 1 km), or the city name you search for |
 | rss2json (`api.rss2json.com`) | News widget is on | Which news feed you chose (Tech, World, Business or AI) |
-| Google favicon service (`www.google.com/s2/favicons`) | A shortcut uses an automatic icon | The website address of that shortcut |
+| Platform logo hosts (`github.githubassets.com`, `abs.twimg.com`, `www.gstatic.com`, `grok.com`, `www.perplexity.ai`) | A shortcut, AI provider or search engine shows its official logo | Nothing beyond the image request itself |
+| Google favicon service (`www.google.com/s2/favicons`) | A site has no official logo on file | The domain of that site |
 | GitHub (`api.github.com`) | GitHub widget has a username | The username (to list your public repositories) |
 | github-contributions-api (`github-contributions-api.jogruber.de`), a community service | GitHub widget has a username | The username (to draw your public contribution graph) |
 | Unsplash (`api.unsplash.com`, `images.unsplash.com`) | You pick Unsplash backgrounds and add your own key | Your access key and topic keywords |
 
 Your browser asks before sharing location. If you say no, weather works with a city you type.
+
+Logos can be turned off in Settings > Appearance ("Fetch logos from the web"). Nothing is requested then, and generic symbols are shown. Fonts are bundled with the extension, so choosing a font makes no network request.
 
 ## Browser permissions
 

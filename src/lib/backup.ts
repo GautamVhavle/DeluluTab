@@ -2,6 +2,8 @@ import { AI_PROVIDERS } from './aiProviders'
 import { clampChordWindow, isValidTrigger } from './chords'
 import { clampFontScale, isHexColor } from './appearance'
 import { isGithubUsername } from './github'
+import { FONTS } from './fonts'
+import { isValidTimeZone } from './timezones'
 import { GRADIENTS } from './gradients'
 import { NEWS_CATEGORIES } from './news'
 import { SEARCH_ENGINES } from './searchEngines'
@@ -117,6 +119,10 @@ function parseSettings(raw: unknown, warnings: string[]): Settings {
     tabTitleCustom: text(r.tabTitleCustom, MAX_TAB_TITLE, d.tabTitleCustom),
     showTabIcon: bool(r.showTabIcon, d.showTabIcon),
     fontScale: clampFontScale(num(r.fontScale, 0, 1000, d.fontScale)),
+    fontFamily: oneOf(r.fontFamily, FONTS.map((f) => f.id), d.fontFamily),
+    showLogos: bool(r.showLogos, d.showLogos),
+    clockStyle: oneOf(r.clockStyle, ['digital', 'flip', 'analog', 'world'], d.clockStyle),
+    secondTimezone: isValidTimeZone(r.secondTimezone) ? r.secondTimezone : d.secondTimezone,
     accent: isHexColor(r.accent) ? r.accent.toLowerCase() : null,
     quickAppsTab: oneOf(r.quickAppsTab, ['notes', 'todos', 'calc'], d.quickAppsTab),
     chordTrigger: typeof r.chordTrigger === 'string' && isValidTrigger(r.chordTrigger) ? r.chordTrigger : d.chordTrigger,

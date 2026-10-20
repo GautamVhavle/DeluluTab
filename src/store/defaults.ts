@@ -37,6 +37,10 @@ export const DEFAULT_SETTINGS: Settings = {
   tabTitleCustom: '',
   showTabIcon: true,
   fontScale: 100,
+  fontFamily: 'inter',
+  showLogos: true,
+  clockStyle: 'digital',
+  secondTimezone: 'UTC',
   accent: null,
   quickAppsTab: 'notes',
   githubUsername: '',
@@ -49,13 +53,14 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export const DEFAULT_FOLDERS: Folder[] = []
 
+// icon '' = automatic: the platform's official logo (see utils/getFavicon), or a symbol when logos are off.
 // URLs are written in canonical form (trailing slash) so exporting and re-importing them changes nothing.
 export const DEFAULT_SHORTCUTS: Shortcut[] = [
-  { id: 'sc-github', title: 'GitHub', url: 'https://github.com/', icon: 'github', folderId: null },
-  { id: 'sc-youtube', title: 'YouTube', url: 'https://www.youtube.com/', icon: 'youtube', folderId: null },
-  { id: 'sc-reddit', title: 'Reddit', url: 'https://www.reddit.com/', icon: 'reddit', folderId: null },
-  { id: 'sc-x', title: 'X', url: 'https://x.com/', icon: 'x', folderId: null },
-  { id: 'sc-chatgpt', title: 'ChatGPT', url: 'https://chatgpt.com/', icon: 'chatgpt', folderId: null },
+  { id: 'sc-github', title: 'GitHub', url: 'https://github.com/', icon: '', folderId: null },
+  { id: 'sc-youtube', title: 'YouTube', url: 'https://www.youtube.com/', icon: '', folderId: null },
+  { id: 'sc-reddit', title: 'Reddit', url: 'https://www.reddit.com/', icon: '', folderId: null },
+  { id: 'sc-x', title: 'X', url: 'https://x.com/', icon: '', folderId: null },
+  { id: 'sc-chatgpt', title: 'ChatGPT', url: 'https://chatgpt.com/', icon: '', folderId: null },
 ]
 
 /** Press the trigger, then type the code: `gh` opens GitHub, `gpt` opens ChatGPT. */

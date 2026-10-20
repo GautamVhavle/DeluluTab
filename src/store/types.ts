@@ -5,6 +5,8 @@ export type TemperatureUnit = 'c' | 'f'
 export type SearchEngineId = 'google' | 'duckduckgo' | 'bing' | 'ecosia' | 'perplexity' | 'chatgpt' | 'claude'
 export type AiProviderId = 'chatgpt' | 'claude' | 'grok' | 'gemini' | 'perplexity'
 export type NewsCategory = 'tech' | 'ai' | 'science' | 'world' | 'business'
+export type FontId = 'inter' | 'jetbrains' | 'outfit' | 'space-grotesk' | 'cinzel'
+export type ClockStyle = 'digital' | 'flip' | 'analog' | 'world'
 export type TabTitleMode = 'name' | 'time' | 'custom'
 
 export interface WeatherLocation {
@@ -49,6 +51,13 @@ export interface Settings {
   showTabIcon: boolean
   /** Page text size in percent (85-130). */
   fontScale: number
+  /** Typeface for the whole page. */
+  fontFamily: FontId
+  /** Fetch website and platform logos from the web (turn off for symbols only, with no logo requests). */
+  showLogos: boolean
+  clockStyle: ClockStyle
+  /** IANA zone shown next to local time by the World clock. */
+  secondTimezone: string
   /** Accent color as #rrggbb, or null for the built-in violet. */
   accent: string | null
   /** Last tab open in the mini-tools drawer. */

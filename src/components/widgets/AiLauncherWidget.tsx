@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowUp } from '@/lib/icons'
 import { AI_PROVIDERS, aiProviderById, type AiProvider } from '@/lib/aiProviders'
+import { PlatformLogo } from '@/components/common/PlatformLogo'
 import { openInNewTab } from '@/lib/navigate'
 import { DEFAULT_AI_PRESETS } from '@/store/defaults'
 import type { AiPreset } from '@/store/types'
@@ -27,15 +28,14 @@ function useFocusHotkeys(target: React.RefObject<HTMLTextAreaElement | null>) {
   }, [target])
 }
 
+/** The provider's official logo on a white chip (logos are designed for light backgrounds), glyph as fallback. */
 function Logo({ provider, size }: { provider: AiProvider; size: 'sm' | 'md' }) {
-  const Glyph = provider.glyph
   return (
     <span
       aria-hidden
-      className={cn('grid shrink-0 place-items-center rounded-lg text-white', size === 'md' ? 'h-8 w-8' : 'h-6 w-6')}
-      style={{ background: provider.tile }}
+      className={cn('grid shrink-0 place-items-center rounded-lg bg-white shadow-sm ring-1 ring-black/5', size === 'md' ? 'h-8 w-8' : 'h-6 w-6')}
     >
-      <Glyph className={size === 'md' ? 'h-4 w-4' : 'h-3.5 w-3.5'} />
+      <PlatformLogo url={provider.site} fallback={provider.glyph} className={cn('text-slate-700', size === 'md' ? 'h-5 w-5' : 'h-4 w-4')} />
     </span>
   )
 }
@@ -113,7 +113,6 @@ export function AiLauncherWidget({ mode }: WidgetProps) {
       <div role="radiogroup" aria-label="AI provider" onKeyDown={onGroupKeyDown} className="flex flex-wrap items-center gap-1">
         {AI_PROVIDERS.map((p, i) => {
           const active = p.id === providerId
-          const Glyph = p.glyph
           return (
             <motion.button
               key={p.id}
@@ -135,7 +134,9 @@ export function AiLauncherWidget({ mode }: WidgetProps) {
               )}
               style={active ? { background: p.tile } : undefined}
             >
-              <Glyph className="h-3.5 w-3.5" />
+              <span aria-hidden className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white ring-1 ring-black/5">
+                <PlatformLogo url={p.site} fallback={p.glyph} className="h-3.5 w-3.5 text-slate-700" />
+              </span>
               {(active || !compact) && <span className={cn(!active && 'hidden sm:inline')}>{p.name}</span>}
             </motion.button>
           )

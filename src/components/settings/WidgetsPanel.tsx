@@ -7,6 +7,7 @@ import { AI_PROVIDERS, NEWS_CATEGORIES, SEARCH_ENGINES } from '@/store/defaults'
 import { cn } from '@/lib/utils'
 import { useAppStore, type AiProviderId, type ClockFormat, type NewsCategory, type SearchEngineId, type TemperatureUnit, type WidgetKey } from '@/store/useAppStore'
 import { Input } from '@/components/ui/input'
+import { ClockStylePicker } from './ClockStylePicker'
 import { Switch } from '@/components/ui/switch'
 import { Row, Section, Segmented, SliderRow, selectClass } from './SettingsUi'
 
@@ -68,6 +69,7 @@ export function WidgetsPanel() {
       </Section>
 
       <Section title="Clock">
+        <ClockStylePicker />
         <Segmented<ClockFormat>
           label="Clock format"
           value={settings.clockFormat}

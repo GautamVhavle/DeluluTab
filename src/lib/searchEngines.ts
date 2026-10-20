@@ -8,20 +8,22 @@ export interface SearchEngine {
   name: string
   group: 'web' | 'ai'
   icon: IconType
+  /** The engine's site, used to look up its logo. */
+  site: string
   url: (query: string) => string
 }
 
 const q = encodeURIComponent
-const ai = (id: 'perplexity' | 'chatgpt' | 'claude'): Pick<SearchEngine, 'name' | 'icon' | 'url'> => {
+const ai = (id: 'perplexity' | 'chatgpt' | 'claude'): Pick<SearchEngine, 'name' | 'icon' | 'site' | 'url'> => {
   const p = aiProviderById(id)
-  return { name: p.name, icon: p.glyph, url: p.url }
+  return { name: p.name, icon: p.glyph, site: p.site, url: p.url }
 }
 
 export const SEARCH_ENGINES: SearchEngine[] = [
-  { id: 'google', name: 'Google', group: 'web', icon: FaGoogle, url: (s) => `https://www.google.com/search?q=${q(s)}` },
-  { id: 'duckduckgo', name: 'DuckDuckGo', group: 'web', icon: FaShieldHalved, url: (s) => `https://duckduckgo.com/?q=${q(s)}` },
-  { id: 'bing', name: 'Bing', group: 'web', icon: FaMicrosoft, url: (s) => `https://www.bing.com/search?q=${q(s)}` },
-  { id: 'ecosia', name: 'Ecosia', group: 'web', icon: FaLeaf, url: (s) => `https://www.ecosia.org/search?q=${q(s)}` },
+  { id: 'google', site: 'https://www.google.com/', name: 'Google', group: 'web', icon: FaGoogle, url: (s) => `https://www.google.com/search?q=${q(s)}` },
+  { id: 'duckduckgo', site: 'https://duckduckgo.com/', name: 'DuckDuckGo', group: 'web', icon: FaShieldHalved, url: (s) => `https://duckduckgo.com/?q=${q(s)}` },
+  { id: 'bing', site: 'https://www.bing.com/', name: 'Bing', group: 'web', icon: FaMicrosoft, url: (s) => `https://www.bing.com/search?q=${q(s)}` },
+  { id: 'ecosia', site: 'https://www.ecosia.org/', name: 'Ecosia', group: 'web', icon: FaLeaf, url: (s) => `https://www.ecosia.org/search?q=${q(s)}` },
   { id: 'perplexity', group: 'ai', ...ai('perplexity') },
   { id: 'chatgpt', group: 'ai', ...ai('chatgpt') },
   { id: 'claude', group: 'ai', ...ai('claude') },

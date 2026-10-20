@@ -8,6 +8,7 @@ import { DashboardLayout } from '@/components/DashboardLayout'
 import { ModeSwitcher } from '@/components/ModeSwitcher'
 import { QuickAppsDrawer } from '@/components/quickapps/QuickAppsDrawer'
 import { useApplyAppearance } from '@/hooks/use-appearance'
+import { useApplyFont } from '@/hooks/use-font'
 import { useBootAnimation } from '@/hooks/use-boot-animation'
 import { useHydrated } from '@/hooks/use-hydrated'
 import { useKeyboardChords } from '@/hooks/useKeyboardChords'
@@ -30,9 +31,12 @@ function MountOnFirstOpen({ open, children }: { open: boolean; children: ReactNo
 export default function App() {
   useApplyTheme()
   useApplyAppearance()
+  const fontReady = useApplyFont()
   const hydrated = useHydrated()
   const rootRef = useRef<HTMLDivElement>(null)
-  useBootAnimation(rootRef, hydrated)
+  // Show the page only once saved settings and the chosen font are ready: it appears fully formed, with no swap or shift.
+  const ready = hydrated && fontReady
+  useBootAnimation(rootRef, ready)
   const chordState = useKeyboardChords()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [backgroundOpen, setBackgroundOpen] = useState(false)
@@ -47,7 +51,7 @@ export default function App() {
     >
       {/* Wait for persisted state so the saved layout doesn't visibly re-animate on boot. */}
       <ChordHud state={chordState} />
-      {hydrated && (
+      {ready && (
         <>
           <BackgroundEngine />
           <header data-boot="header" className="flex items-center justify-between px-6 py-4">

@@ -122,8 +122,9 @@ for (const f of files.filter((x) => x.endsWith('.js'))) {
 
 // Every chunk in assets/ should be reachable: loaded by index.html or imported by another chunk.
 const jsFiles = files.filter((f) => f.endsWith('.js'))
+const cssFiles = files.filter((f) => f.endsWith('.css')) // fonts and images are referenced from stylesheets
 const referenced = new Set()
-for (const f of ['index.html', ...jsFiles].filter((x) => files.includes(x))) {
+for (const f of ['index.html', ...jsFiles, ...cssFiles].filter((x) => files.includes(x))) {
   const text = readFileSync(path.join(distDir, f), 'utf8')
   for (const other of files) if (other !== f && text.includes(path.posix.basename(other))) referenced.add(other)
 }

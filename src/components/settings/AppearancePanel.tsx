@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { useAppStore, type LayoutMode } from '@/store/useAppStore'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
+import { FontPicker } from './FontPicker'
 import { Row, Section, Segmented, SliderRow } from './SettingsUi'
 
 const LAYOUTS: { value: LayoutMode; label: string; hint: string; Icon: IconType }[] = [
@@ -20,6 +21,7 @@ export function AppearancePanel({ onOpenBackground }: { onOpenBackground: () => 
   const layout = useAppStore((s) => s.settings.layoutMode)
   const fontScale = useAppStore((s) => s.settings.fontScale)
   const accent = useAppStore((s) => s.settings.accent)
+  const showLogos = useAppStore((s) => s.settings.showLogos)
   const updateSettings = useAppStore((s) => s.updateSettings)
   const isDark = useIsDark()
 
@@ -63,6 +65,10 @@ export function AppearancePanel({ onOpenBackground }: { onOpenBackground: () => 
             </button>
           ))}
         </div>
+      </Section>
+
+      <Section title="Font" hint="Applies everywhere. Bundled with the extension, so it works offline.">
+        <FontPicker />
       </Section>
 
       <Section title="Text size">
@@ -111,6 +117,12 @@ export function AppearancePanel({ onOpenBackground }: { onOpenBackground: () => 
             Custom
           </label>
         </div>
+      </Section>
+
+      <Section title="Logos" hint="Shows each site's real logo on shortcuts, AI tools and search engines.">
+        <Row label="Fetch logos from the web" hint="Off: simple symbols only, and no logo requests are made.">
+          <Switch aria-label="Fetch logos from the web" checked={showLogos} onCheckedChange={(v) => updateSettings({ showLogos: v })} />
+        </Row>
       </Section>
 
       <Section title="Background" hint="Gradients, Unsplash photos or your own images, with a slideshow.">

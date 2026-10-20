@@ -33,7 +33,7 @@ import {
   FaYoutube,
 } from 'react-icons/fa6'
 import { MdStars } from 'react-icons/md'
-import { hostnameOf } from '@/lib/url'
+import { PlatformLogo } from '@/components/common/PlatformLogo'
 
 /** Icons a shortcut can use. The keys are saved in settings, so never rename one. */
 export const ICONS: Record<string, IconType> = {
@@ -74,9 +74,6 @@ export const ICON_NAMES = Object.keys(ICONS)
 
 export const isImageUrl = (icon: string) => /^(https?:|data:image\/)/i.test(icon)
 
-export const faviconFor = (url: string) =>
-  `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostnameOf(url))}&sz=64`
-
 function Img({ src, className }: { src: string; className?: string }) {
   const [failed, setFailed] = useState(false)
   if (failed) return <FaGlobe className={className} />
@@ -84,15 +81,15 @@ function Img({ src, className }: { src: string; className?: string }) {
 }
 
 /**
- * `icon` is '' (auto favicon of `url`), a key of ICONS, or an image URL.
- * Falls back to a globe if an image fails to load.
+ * `icon` is '' (automatic: the site's official logo, see utils/getFavicon), a key of ICONS, or an image URL.
+ * Anything that can't be shown falls back to a symbol, never a broken image.
  */
 export function ShortcutIcon({ icon, url, className }: { icon: string; url: string; className?: string }) {
   if (icon && ICONS[icon]) {
     const Icon = ICONS[icon]
     return <Icon className={className} />
   }
-  const src = isImageUrl(icon) ? icon : icon === '' ? faviconFor(url) : null
-  // key resets the failed state when the source changes (e.g. while editing)
-  return src ? <Img key={src} src={src} className={className} /> : <FaGlobe className={className} />
+  if (isImageUrl(icon)) return <Img key={icon} src={icon} className={className} />
+  if (icon === '') return <PlatformLogo url={url} className={className} backing />
+  return <FaGlobe className={className} />
 }
