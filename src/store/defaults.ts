@@ -2,7 +2,7 @@
  * Everything DeluluTab starts with. A fresh install, "Restore default configuration" and the backup
  * importer (for fields a file leaves out) all read from here, so there is exactly one definition of "default".
  */
-import type { Chord, Folder, Settings, Shortcut, WidgetsState } from './types'
+import type { AiPreset, Chord, Folder, Settings, Shortcut, WidgetsState } from './types'
 
 export { AI_PROVIDERS } from '@/lib/aiProviders'
 export { NEWS_CATEGORIES } from '@/lib/news'
@@ -39,6 +39,10 @@ export const DEFAULT_SETTINGS: Settings = {
   fontScale: 100,
   accent: null,
   quickAppsTab: 'notes',
+  githubUsername: '',
+  pomodoroWorkMin: 25,
+  pomodoroBreakMin: 5,
+  ambientVolume: 40,
   chordTrigger: 'Backquote',
   chordWindowMs: 1000,
 }
@@ -70,7 +74,20 @@ export const DEFAULT_WIDGETS: WidgetsState = {
   aiLauncher: true,
   news: true,
   quickApps: true,
+  tabStash: true,
+  github: true,
+  pomodoro: true,
 }
+
+/** Quick prompts under the AI launcher. Clicking one fills the prompt box; paste your text after it. */
+export const DEFAULT_AI_PRESETS: AiPreset[] = [
+  { id: 'refactor', label: 'Code refactor', text: 'Refactor this code to be cleaner, more readable and more efficient. Keep the behavior identical and briefly explain each change:\n\n' },
+  { id: 'summarize', label: 'Summarize text', text: 'Summarize the following text in 5 concise bullet points, then give a one-sentence takeaway:\n\n' },
+  { id: 'explain', label: 'Explain concept', text: "Explain this concept as if I'm new to it. Start with a simple analogy, then give a short example:\n\n" },
+  { id: 'fix-bug', label: 'Fix a bug', text: 'Find and fix the bug in this code. Explain what was wrong, then show the corrected version:\n\n' },
+  { id: 'email', label: 'Write an email', text: 'Write a clear, friendly, professional email based on these points:\n\n' },
+  { id: 'brainstorm', label: 'Brainstorm', text: 'Brainstorm 10 creative ideas for the following, then pick the top 3 and say why:\n\n' },
+]
 
 /** Fresh copies, so callers can never mutate the shared defaults. */
 export function createDefaultConfig() {

@@ -42,6 +42,20 @@ export {
   FaLocationDot as MapPin,
   FaDroplet as Droplets,
   FaWind as Wind,
+  // focus, tabs, github
+  FaPlay as Play,
+  FaPause as Pause,
+  FaForwardStep as SkipForward,
+  FaBoxArchive as Archive,
+  FaWindowRestore as RestoreWindow,
+  FaMugHot as Coffee,
+  FaStar as Star,
+  FaCodeBranch as Branch,
+  FaGithub as Github,
+  FaFire as Flame,
+  FaPenToSquare as Edit,
+  FaVolumeHigh as VolumeOn,
+  FaVolumeXmark as VolumeOff,
   // theme
   FaSun as Sun,
   FaMoon as Moon,
@@ -74,4 +88,5 @@ export {
   MdAddPhotoAlternate as ImagePlus,
   MdOutlineViewSidebar as PanelRightOpen,
   MdEditNote as NotebookPen,
+  MdGraphicEq as Waveform,
 } from 'react-icons/md'

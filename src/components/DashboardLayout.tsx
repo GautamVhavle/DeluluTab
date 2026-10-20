@@ -4,9 +4,12 @@ import { cn } from '@/lib/utils'
 import { useAppStore, type LayoutMode, type WidgetKey } from '@/store/useAppStore'
 import { AiLauncherWidget } from './widgets/AiLauncherWidget'
 import { ClockWidget } from './widgets/ClockWidget'
+import { GithubWidget } from './widgets/GithubWidget'
 import { NewsWidget } from './widgets/NewsWidget'
+import { PomodoroWidget } from './widgets/PomodoroWidget'
 import { QuickAppsWidget } from './widgets/QuickAppsWidget'
 import { SearchBarWidget } from './widgets/SearchBarWidget'
+import { TabStashWidget } from './widgets/TabStashWidget'
 import { WeatherWidget } from './widgets/WeatherWidget'
 import type { WidgetProps } from './widgets/types'
 
@@ -17,6 +20,9 @@ const WIDGETS: Record<WidgetKey, ComponentType<WidgetProps>> = {
   weather: WeatherWidget,
   quickApps: QuickAppsWidget,
   news: NewsWidget,
+  tabStash: TabStashWidget,
+  github: GithubWidget,
+  pomodoro: PomodoroWidget,
 }
 
 interface ModeConfig {
@@ -39,7 +45,7 @@ const MODES: Record<LayoutMode, ModeConfig> = {
     wrapper: 'max-w-6xl p-6 sm:p-8',
     grid: 'grid grid-flow-dense grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4 lg:auto-rows-[11rem]',
     card: 'min-h-[9rem] rounded-2xl border bg-card/70 p-5 shadow-sm backdrop-blur',
-    order: ['clock', 'search', 'aiLauncher', 'weather', 'quickApps', 'news'],
+    order: ['clock', 'search', 'aiLauncher', 'weather', 'quickApps', 'news', 'pomodoro', 'github', 'tabStash'],
     spans: {
       clock: 'sm:col-span-2',
       search: 'sm:col-span-2',
@@ -47,19 +53,26 @@ const MODES: Record<LayoutMode, ModeConfig> = {
       weather: 'sm:col-span-2',
       quickApps: 'sm:col-span-2 lg:row-span-2',
       news: 'sm:col-span-2 lg:row-span-2',
+      // Rows 5-6: the timer and the stash stack on the left; GitHub's graph and repo list get the two-row slot on the right.
+      pomodoro: 'sm:col-span-2',
+      github: 'sm:col-span-2 lg:row-span-2',
+      tabStash: 'sm:col-span-2',
     },
   },
   compact: {
     wrapper: 'max-w-3xl p-3',
     grid: 'grid grid-cols-2 gap-2 sm:grid-cols-4',
     card: 'rounded-xl border bg-card/70 p-3 backdrop-blur',
-    order: ['clock', 'weather', 'search', 'aiLauncher', 'news', 'quickApps'],
+    order: ['clock', 'weather', 'search', 'aiLauncher', 'pomodoro', 'news', 'github', 'tabStash', 'quickApps'],
     spans: {
       clock: 'col-span-2',
       weather: 'col-span-2',
       search: 'col-span-2 sm:col-span-4',
       aiLauncher: 'col-span-2 sm:col-span-4',
       news: 'col-span-2 sm:col-span-4',
+      pomodoro: 'col-span-2 sm:col-span-4',
+      github: 'col-span-2 sm:col-span-4',
+      tabStash: 'col-span-2 sm:col-span-4',
       quickApps: 'col-span-2 sm:col-span-4',
     },
   },
@@ -67,7 +80,7 @@ const MODES: Record<LayoutMode, ModeConfig> = {
     wrapper: 'max-w-2xl p-6',
     grid: 'flex flex-col items-center gap-10',
     card: 'w-full border-transparent bg-transparent p-0',
-    order: ['clock', 'search'],
+    order: ['clock', 'search', 'pomodoro'],
     spans: {},
   },
 }

@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 import { ArrowUp } from '@/lib/icons'
 import { AI_PROVIDERS, aiProviderById, type AiProvider } from '@/lib/aiProviders'
 import { openInNewTab } from '@/lib/navigate'
+import { DEFAULT_AI_PRESETS } from '@/store/defaults'
+import type { AiPreset } from '@/store/types'
 import { isMac } from '@/lib/platform'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
@@ -65,6 +67,17 @@ export function AiLauncherWidget({ mode }: WidgetProps) {
     if (field.current) grow(field.current)
   }, [prompt, mode])
 
+  /** Fills the prompt box with the preset. Anything already typed or pasted goes after it. */
+  const applyPreset = (preset: AiPreset) => {
+    const existing = prompt.trim()
+    const next = existing.startsWith(preset.text.trim()) ? prompt : existing ? `${preset.text}${existing}` : preset.text
+    setPrompt(next)
+    // Focus right away so anything typed next lands in the prompt box, not on the preset button; the caret is
+    // moved to the end once React has written the new text into the field.
+    field.current?.focus()
+    requestAnimationFrame(() => field.current?.setSelectionRange(next.length, next.length))
+  }
+
   const onFieldKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     // Alt+1..5 switches provider without leaving the keyboard (codes, because Option+digit types symbols on a Mac).
     const digit = /^Digit([1-5])$/.exec(e.code)
@@ -94,7 +107,6 @@ export function AiLauncherWidget({ mode }: WidgetProps) {
   }
 
   const mod = isMac() ? '⌥' : 'Alt'
-  const chordKey = isMac() ? '⌘⇧K' : 'Ctrl Shift K'
 
   return (
     <div className="flex h-full flex-col justify-center gap-2">
@@ -157,7 +169,7 @@ export function AiLauncherWidget({ mode }: WidgetProps) {
           type="submit"
           disabled={!prompt.trim()}
           aria-label={`Ask ${provider.name} in a new tab`}
-          title={`Open in ${provider.name} (Enter)`}
+          title={`Open in ${provider.name} (Enter). Shift+Enter for a new line. ${mod}+A to focus.`}
           className={cn(
             'grid shrink-0 place-items-center rounded-lg text-white outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-30',
             compact ? 'h-6 w-6' : 'h-8 w-8',
@@ -169,10 +181,19 @@ export function AiLauncherWidget({ mode }: WidgetProps) {
       </form>
 
       {mode === 'detailed' && (
-        <p className="truncate px-1 text-[11px] text-muted-foreground">
-          Enter opens {provider.name} in a new tab · Shift+Enter for a new line · {mod}+A to focus
-          <span className="hidden xl:inline"> ({chordKey})</span>
-        </p>
+        <div role="group" aria-label="Prompt presets" className="flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none]">
+          {DEFAULT_AI_PRESETS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => applyPreset(p)}
+              title={p.text.trim()}
+              className="shrink-0 rounded-full border bg-background/40 px-2.5 py-1 text-[11px] text-muted-foreground outline-none transition-colors hover:border-primary/50 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   )

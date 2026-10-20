@@ -1,11 +1,14 @@
+import { useState } from 'react'
 import type { IconType } from 'react-icons'
-import { Clock, Newspaper, Search, Sparkles, Widgets } from '@/lib/icons'
+import { isGithubUsername } from '@/lib/github'
+import { Archive, Clock, Coffee, Github, Newspaper, Search, Sparkles, Widgets } from '@/lib/icons'
 import { FaCloudSun } from 'react-icons/fa6'
 import { AI_PROVIDERS, NEWS_CATEGORIES, SEARCH_ENGINES } from '@/store/defaults'
 import { cn } from '@/lib/utils'
 import { useAppStore, type AiProviderId, type ClockFormat, type NewsCategory, type SearchEngineId, type TemperatureUnit, type WidgetKey } from '@/store/useAppStore'
+import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import { Row, Section, Segmented, selectClass } from './SettingsUi'
+import { Row, Section, Segmented, SliderRow, selectClass } from './SettingsUi'
 
 const WIDGETS: { key: WidgetKey; label: string; hint: string; Icon: IconType }[] = [
   { key: 'clock', label: 'Clock and greeting', hint: 'Time, date and a hello', Icon: Clock },
@@ -14,6 +17,9 @@ const WIDGETS: { key: WidgetKey; label: string; hint: string; Icon: IconType }[]
   { key: 'weather', label: 'Weather', hint: 'Current conditions and a 4-day forecast', Icon: FaCloudSun },
   { key: 'news', label: 'News', hint: 'Headlines by category', Icon: Newspaper },
   { key: 'quickApps', label: 'Quick apps', hint: 'Your shortcuts and folders', Icon: Widgets },
+  { key: 'pomodoro', label: 'Focus timer', hint: 'Pomodoro timer with ambient sounds', Icon: Coffee },
+  { key: 'github', label: 'GitHub activity', hint: 'Contribution graph and recent repositories', Icon: Github },
+  { key: 'tabStash', label: 'Tab stash', hint: 'Save and restore sets of tabs', Icon: Archive },
 ]
 
 export function WidgetsPanel() {
@@ -24,7 +30,7 @@ export function WidgetsPanel() {
 
   return (
     <div className="grid gap-7">
-      <Section title="Show on the dashboard" hint="Focus layout only ever shows the clock and search bar.">
+      <Section title="Show on the dashboard" hint="Focus layout shows only the clock, search bar and focus timer.">
         <ul className="divide-y rounded-xl border">
           {WIDGETS.map(({ key, label, hint, Icon }) => (
             <li key={key} className="flex items-center justify-between gap-3 px-3 py-2">
@@ -89,6 +95,14 @@ export function WidgetsPanel() {
         )}
       </Section>
 
+      <Section title="Focus timer" hint="Changes apply to the next session; a running one keeps its length.">
+        <SliderRow label="Focus" value={settings.pomodoroWorkMin} min={1} max={90} step={1} format={(v) => `${v} min`} onChange={(pomodoroWorkMin) => updateSettings({ pomodoroWorkMin })} />
+        <SliderRow label="Break" value={settings.pomodoroBreakMin} min={1} max={30} step={1} format={(v) => `${v} min`} onChange={(pomodoroBreakMin) => updateSettings({ pomodoroBreakMin })} />
+        <SliderRow label="Sound level" value={settings.ambientVolume} min={0} max={100} step={5} format={(v) => `${v}%`} onChange={(ambientVolume) => updateSettings({ ambientVolume })} />
+      </Section>
+
+      <GithubSetting />
+
       <Section title="News">
         <div role="radiogroup" aria-label="News category" className="flex flex-wrap gap-1.5">
           {NEWS_CATEGORIES.map((c) => (
@@ -109,5 +123,38 @@ export function WidgetsPanel() {
         </div>
       </Section>
     </div>
+  )
+}
+
+function GithubSetting() {
+  const saved = useAppStore((s) => s.settings.githubUsername)
+  const updateSettings = useAppStore((s) => s.updateSettings)
+  const [draft, setDraft] = useState(saved)
+  const [error, setError] = useState('')
+
+  function commit() {
+    const name = draft.trim().replace(/^@/, '')
+    if (name === saved) return setError('')
+    if (name && !isGithubUsername(name)) return setError('GitHub usernames use letters, numbers and single hyphens.')
+    setError('')
+    setDraft(name)
+    updateSettings({ githubUsername: name })
+  }
+
+  return (
+    <Section title="GitHub" hint="Your public username. Nothing is sent except that name, and no token is needed.">
+      <Input
+        value={draft}
+        maxLength={40}
+        onChange={(e) => { setDraft(e.target.value); setError('') }}
+        onBlur={commit}
+        onKeyDown={(e) => e.key === 'Enter' && commit()}
+        placeholder="e.g. torvalds"
+        aria-label="GitHub username"
+        autoComplete="off"
+        spellCheck={false}
+      />
+      {error && <p role="alert" className="text-xs text-red-500">{error}</p>}
+    </Section>
   )
 }

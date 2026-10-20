@@ -33,7 +33,7 @@ export function BackupPanel() {
   function exportConfig() {
     const s = useAppStore.getState()
     const file = buildBackup(
-      { settings: s.settings, folders: s.folders, shortcuts: s.shortcuts, chords: s.chords, widgets: s.widgets, notes: s.notes, todos: s.todos },
+      { settings: s.settings, folders: s.folders, shortcuts: s.shortcuts, chords: s.chords, widgets: s.widgets, notes: s.notes, todos: s.todos, stashes: s.stashes },
       { includeNotes, appVersion: __APP_VERSION__ },
     )
     const name = backupFileName()
@@ -77,7 +77,7 @@ export function BackupPanel() {
       <Section title="Export" hint="Saves your settings, shortcuts, folders, chords and widget choices to a JSON file. Uploaded wallpapers and your Unsplash key stay on this device.">
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={includeNotes} onChange={(e) => setIncludeNotes(e.target.checked)} className="h-4 w-4 accent-primary" />
-          Include my notes and tasks
+          Include my notes, tasks and saved tab groups
         </label>
         <div className="flex items-center gap-3">
           <Button variant="secondary" onClick={exportConfig}><Export /> Export configuration</Button>
@@ -104,6 +104,7 @@ export function BackupPanel() {
               <li>{r.summary.shortcuts} shortcuts in {r.summary.folders} folders</li>
               <li>{r.summary.chords} chords</li>
               <li>{r.summary.hasNotes ? `Notes and ${r.summary.todos} tasks (these replace yours)` : 'No notes or tasks (yours are kept)'}</li>
+              <li>{r.summary.stashes === null ? 'No saved tab groups (yours are kept)' : `${r.summary.stashes} saved tab groups (these replace yours)`}</li>
             </ul>
             {r.warnings.length > 0 && (
               <ul role="status" className="grid gap-1 text-xs text-amber-500">
@@ -118,7 +119,7 @@ export function BackupPanel() {
         )}
       </Section>
 
-      <Section title="Restore default configuration" hint="Puts settings, shortcuts, chords and widgets back to how DeluluTab starts. Notes and tasks are kept unless you choose otherwise.">
+      <Section title="Restore default configuration" hint="Puts settings, shortcuts, chords and widgets back to how DeluluTab starts. Notes, tasks and saved tab groups are kept unless you choose otherwise.">
         {!confirmRestore ? (
           <div>
             <Button variant="outline" onClick={() => setConfirmRestore(true)}><Restore /> Restore defaults…</Button>
@@ -128,7 +129,7 @@ export function BackupPanel() {
             <p className="text-sm">This replaces your current configuration. It can't be undone.</p>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={clearNotes} onChange={(e) => setClearNotes(e.target.checked)} className="h-4 w-4 accent-primary" />
-              Also delete my notes and tasks
+              Also delete my notes, tasks and saved tab groups
             </label>
             <div className="flex gap-2">
               <Button size="sm" variant="destructive" onClick={restore} className="bg-red-600 text-white hover:bg-red-600/90">Restore defaults</Button>

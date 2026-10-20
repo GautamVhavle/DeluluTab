@@ -1,13 +1,15 @@
 import { AI_PROVIDERS } from './aiProviders'
 import { clampChordWindow, isValidTrigger } from './chords'
 import { clampFontScale, isHexColor } from './appearance'
+import { isGithubUsername } from './github'
 import { GRADIENTS } from './gradients'
 import { NEWS_CATEGORIES } from './news'
 import { SEARCH_ENGINES } from './searchEngines'
 import { MAX_TAB_TITLE } from './tabTitle'
+import { cleanStashName, cleanTabs, MAX_STASH_GROUPS } from './stash'
 import { hostnameOf, normalizeUrl } from './url'
 import { DEFAULT_SETTINGS, DEFAULT_WIDGETS } from '@/store/defaults'
-import type { Chord, Folder, Settings, Shortcut, Todo, WidgetKey, WidgetsState } from '@/store/types'
+import type { Chord, Folder, Settings, Shortcut, StashGroup, Todo, WidgetKey, WidgetsState } from '@/store/types'
 
 export const BACKUP_APP = 'DeluluTab'
 export const BACKUP_FORMAT = 1
@@ -24,6 +26,7 @@ export interface BackupData {
   /** Present only when the backup was made with notes and tasks included. */
   notes?: string
   todos?: Todo[]
+  stashes?: StashGroup[]
 }
 
 export interface BackupFile {
@@ -40,13 +43,15 @@ export interface BackupSummary {
   chords: number
   hasNotes: boolean
   todos: number
+  /** Saved tab groups included in the file, or null if the file has none. */
+  stashes: number | null
 }
 
 export type ParseResult =
   | { ok: true; data: BackupData; summary: BackupSummary; warnings: string[] }
   | { ok: false; error: string }
 
-/** What goes into a backup: configuration only. Wallpapers and the Unsplash key stay on the device. */
+/** What goes into a backup: configuration, plus (optionally) notes, tasks and saved tab groups. Wallpapers and the Unsplash key stay on the device. */
 export function buildBackup(
   state: BackupData,
   options: { includeNotes: boolean; appVersion: string; now?: Date },
@@ -61,6 +66,7 @@ export function buildBackup(
   if (options.includeNotes) {
     data.notes = state.notes ?? ''
     data.todos = state.todos ?? []
+    data.stashes = state.stashes ?? []
   }
   return { app: BACKUP_APP, format: BACKUP_FORMAT, appVersion: options.appVersion, exportedAt: (options.now ?? new Date()).toISOString(), data }
 }
@@ -115,6 +121,10 @@ function parseSettings(raw: unknown, warnings: string[]): Settings {
     quickAppsTab: oneOf(r.quickAppsTab, ['notes', 'todos', 'calc'], d.quickAppsTab),
     chordTrigger: typeof r.chordTrigger === 'string' && isValidTrigger(r.chordTrigger) ? r.chordTrigger : d.chordTrigger,
     chordWindowMs: clampChordWindow(num(r.chordWindowMs, 0, 100_000, d.chordWindowMs)),
+    githubUsername: typeof r.githubUsername === 'string' && isGithubUsername(r.githubUsername.trim()) ? r.githubUsername.trim() : '',
+    pomodoroWorkMin: Math.round(num(r.pomodoroWorkMin, 1, 90, d.pomodoroWorkMin)),
+    pomodoroBreakMin: Math.round(num(r.pomodoroBreakMin, 1, 30, d.pomodoroBreakMin)),
+    ambientVolume: Math.round(num(r.ambientVolume, 0, 100, d.ambientVolume)),
   }
 }
 
@@ -194,6 +204,21 @@ function parseWidgets(raw: unknown): WidgetsState {
   return out
 }
 
+function parseStashes(raw: unknown, warnings: string[]): StashGroup[] {
+  const groups: StashGroup[] = []
+  const ids = new Set<string>()
+  for (const item of cap(raw, MAX_STASH_GROUPS, 'saved tab groups', warnings)) {
+    if (!isObject(item)) continue
+    const tabs = cleanTabs(Array.isArray(item.tabs) ? (item.tabs.filter(isObject) as { url?: unknown; title?: unknown; pinned?: unknown }[]) : [])
+    if (tabs.length === 0) continue
+    let id = text(item.id, 64)
+    if (!id || ids.has(id)) id = crypto.randomUUID()
+    ids.add(id)
+    groups.push({ id, name: cleanStashName(item.name) || 'Saved tabs', createdAt: typeof item.createdAt === 'number' && Number.isFinite(item.createdAt) ? item.createdAt : Date.now(), tabs })
+  }
+  return groups
+}
+
 function parseTodos(raw: unknown, warnings: string[]): Todo[] {
   const todos: Todo[] = []
   for (const item of cap(raw, LIMITS.todos, 'tasks', warnings)) {
@@ -239,11 +264,12 @@ export function parseBackup(input: string): ParseResult {
   }
   if (typeof data.notes === 'string') result.notes = data.notes.replace(/\u0000/g, '').slice(0, LIMITS.notes)
   if (Array.isArray(data.todos)) result.todos = parseTodos(data.todos, warnings)
+  if (Array.isArray(data.stashes)) result.stashes = parseStashes(data.stashes, warnings)
 
   return {
     ok: true,
     data: result,
     warnings,
-    summary: { shortcuts: shortcuts.length, folders: folders.length, chords: chords.length, hasNotes: result.notes !== undefined, todos: result.todos?.length ?? 0 },
+    summary: { shortcuts: shortcuts.length, folders: folders.length, chords: chords.length, hasNotes: result.notes !== undefined, todos: result.todos?.length ?? 0, stashes: result.stashes?.length ?? null },
   }
 }

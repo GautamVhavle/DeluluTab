@@ -48,9 +48,14 @@ export default defineConfig(({ mode }) => ({
     // MV3 CSP forbids inline scripts; keep the module-preload polyfill out of index.html.
     modulePreload: { polyfill: false },
     rollupOptions: {
-      input: path.resolve(__dirname, 'index.html'),
+      input: {
+        index: path.resolve(__dirname, 'index.html'),
+        // The MV3 service worker (finishes Pomodoro sessions via chrome.alarms). Its file name must be stable
+        // because manifest.json points at it, so it is the one entry that is not hashed.
+        background: path.resolve(__dirname, 'src/background.ts'),
+      },
       output: {
-        entryFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: (chunk) => (chunk.name === 'background' ? 'background.js' : 'assets/[name]-[hash].js'),
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash][extname]',
         // Stable vendor chunks: app code changes between releases, these rarely do.

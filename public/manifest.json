@@ -2,13 +2,19 @@
   "manifest_version": 3,
   "name": "DeluluTab",
   "short_name": "DeluluTab",
-  "description": "An AI-focused new tab page: search, AI prompt launcher, weather, news, shortcuts, notes and more.",
+  "description": "An AI-focused new tab page: search, AI launcher, tab stash, focus timer, GitHub activity, notes and more.",
   "version": "1.0.0",
   "minimum_chrome_version": "111",
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
-  "permissions": ["storage", "unlimitedStorage"],
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "tabs",
+    "alarms",
+    "notifications"
+  ],
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -17,5 +23,9 @@
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
   }
 }

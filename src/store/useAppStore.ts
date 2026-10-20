@@ -1,12 +1,15 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { createSplitStorage, splitKeys, subscribeToExternalChanges } from './chromeStorage'
+import { cleanStashName, cleanTabs, MAX_STASH_GROUPS } from '@/lib/stash'
 import { createDefaultConfig } from './defaults'
 import type {
   Chord,
   Folder,
   Settings,
   Shortcut,
+  StashGroup,
+  StashTab,
   Todo,
   WidgetKey,
   WidgetsState,
@@ -48,6 +51,8 @@ interface AppState {
   /** Scratchpad text. Saved on every keystroke. */
   notes: string
   todos: Todo[]
+  /** Saved tab sessions. Local to this device (can be large). */
+  stashes: StashGroup[]
 
   updateSettings: (patch: Partial<Settings>) => void
 
@@ -78,6 +83,12 @@ interface AppState {
   removeTodo: (id: string) => void
   clearCompletedTodos: () => void
 
+  /** Saves tabs as a named group (newest first). Returns its id, or null if there was nothing to save or the limit is reached. */
+  addStash: (name: string, tabs: StashTab[]) => string | null
+  renameStash: (id: string, name: string) => void
+  removeStash: (id: string) => void
+  removeStashTab: (id: string, index: number) => void
+
   /** Back to the built-in configuration (settings, shortcuts, chords, widgets). Notes and tasks stay unless asked. */
   restoreDefaults: (options?: { clearNotes?: boolean }) => void
   /** Replaces the configuration with an already-validated backup (see lib/backup). */
@@ -92,14 +103,16 @@ export interface ImportedConfig {
   widgets: WidgetsState
   notes?: string
   todos?: Todo[]
+  stashes?: StashGroup[]
 }
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...createDefaultConfig(),
       notes: '',
       todos: [],
+      stashes: [],
 
       updateSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),
 
@@ -168,11 +181,34 @@ export const useAppStore = create<AppState>()(
       removeTodo: (id) => set((s) => ({ todos: s.todos.filter((t) => t.id !== id) })),
       clearCompletedTodos: () => set((s) => ({ todos: s.todos.filter((t) => !t.done) })),
 
+      addStash: (name, tabs) => {
+        const clean = cleanTabs(tabs)
+        if (clean.length === 0 || get().stashes.length >= MAX_STASH_GROUPS) return null
+        const id = newId()
+        set((s) => ({ stashes: [{ id, name: cleanStashName(name) || 'Saved tabs', createdAt: Date.now(), tabs: clean }, ...s.stashes] }))
+        return id
+      },
+      renameStash: (id, name) => {
+        const clean = cleanStashName(name)
+        if (clean) set((s) => ({ stashes: s.stashes.map((g) => (g.id === id ? { ...g, name: clean } : g)) }))
+      },
+      removeStash: (id) => set((s) => ({ stashes: s.stashes.filter((g) => g.id !== id) })),
+      removeStashTab: (id, index) =>
+        set((s) => ({
+          // A group with no tabs left is removed rather than kept empty.
+          stashes: s.stashes.flatMap((g) => {
+            if (g.id !== id) return [g]
+            const tabs = g.tabs.filter((_, i) => i !== index)
+            return tabs.length ? [{ ...g, tabs }] : []
+          }),
+        })),
+
       restoreDefaults: ({ clearNotes = false } = {}) =>
         set((s) => ({
           ...createDefaultConfig(),
           notes: clearNotes ? '' : s.notes,
           todos: clearNotes ? [] : s.todos,
+          stashes: clearNotes ? [] : s.stashes,
         })),
 
       importConfig: (config) =>
@@ -185,6 +221,7 @@ export const useAppStore = create<AppState>()(
           // A backup made without notes must not wipe the notes already on this device.
           notes: config.notes ?? s.notes,
           todos: config.todos ?? s.todos,
+          stashes: config.stashes ?? s.stashes,
         })),
     }),
     {
@@ -212,7 +249,7 @@ export const useAppStore = create<AppState>()(
         return state as AppState
       },
       // Settings sync across devices; notes and todos stay on this device (chrome.storage.local, no 8KB cap).
-      storage: createJSONStorage(() => createSplitStorage(['notes', 'todos'])),
+      storage: createJSONStorage(() => createSplitStorage(['notes', 'todos', 'stashes'])),
       // Persist data only, never action functions.
       partialize: (s) => ({
         settings: s.settings,
@@ -222,6 +259,7 @@ export const useAppStore = create<AppState>()(
         widgets: s.widgets,
         notes: s.notes,
         todos: s.todos,
+        stashes: s.stashes,
       }),
       // Shallow-merge each slice so keys added in future versions get their defaults.
       merge: (persisted, current) => {

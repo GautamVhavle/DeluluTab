@@ -53,6 +53,12 @@ export interface Settings {
   accent: string | null
   /** Last tab open in the mini-tools drawer. */
   quickAppsTab: QuickAppsTab
+  /** Public GitHub username for the activity widget ('' = not set). */
+  githubUsername: string
+  pomodoroWorkMin: number
+  pomodoroBreakMin: number
+  /** Ambient sound level, 0-100. */
+  ambientVolume: number
   chordTrigger: ChordTrigger
   /** Max pause between chord keystrokes before the chord window closes. */
   chordWindowMs: number
@@ -92,7 +98,28 @@ export interface Todo {
   createdAt: number
 }
 
+export interface StashTab {
+  url: string
+  title: string
+  pinned?: boolean
+}
+
+/** A saved set of tabs ("React Work", "Travel Research"). */
+export interface StashGroup {
+  id: string
+  name: string
+  createdAt: number
+  tabs: StashTab[]
+}
+
+export interface AiPreset {
+  id: string
+  label: string
+  /** Text dropped into the prompt box. Ends with a blank line so you can paste straight after it. */
+  text: string
+}
+
 export type QuickAppsTab = 'notes' | 'todos' | 'calc'
 
-export type WidgetKey = 'clock' | 'weather' | 'search' | 'aiLauncher' | 'news' | 'quickApps'
+export type WidgetKey = 'clock' | 'weather' | 'search' | 'aiLauncher' | 'news' | 'quickApps' | 'tabStash' | 'github' | 'pomodoro'
 export type WidgetsState = Record<WidgetKey, boolean>

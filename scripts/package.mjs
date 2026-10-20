@@ -74,9 +74,30 @@ for (const [size, rel] of Object.entries(manifest.icons ?? {})) {
 if (!manifest.icons?.['128']) fail('a 128x128 icon is required by the Web Store')
 
 // Permissions: keep this list deliberate. Anything new should be justified in RELEASING.md.
-const ALLOWED = new Set(['storage', 'unlimitedStorage'])
+//   storage, unlimitedStorage  settings, notes, uploaded wallpapers
+//   tabs                       read tab titles and URLs when you press "Save tabs" (tab stash)
+//   alarms, notifications      finish a focus session and notify you even when no new tab is open
+const ALLOWED = new Set(['storage', 'unlimitedStorage', 'tabs', 'alarms', 'notifications'])
 for (const p of manifest.permissions ?? []) if (!ALLOWED.has(p)) fail(`unexpected permission "${p}" (allowed: ${[...ALLOWED].join(', ')})`)
 if (manifest.host_permissions?.length) fail(`host_permissions are not expected: ${manifest.host_permissions.join(', ')}`)
+
+// The service worker: present, and self-contained (it must not drag in the app, which needs a DOM).
+const worker = manifest.background?.service_worker
+if (manifest.background && !worker) fail('manifest.background has no service_worker')
+if (worker) {
+  if (!files.includes(worker)) fail(`service worker "${worker}" is not in dist/`)
+  else {
+    const seen = new Set()
+    const visit = (file) => {
+      if (seen.has(file) || !files.includes(file)) return
+      seen.add(file)
+      const src = readFileSync(path.join(distDir, file), 'utf8')
+      if (/createRoot|getElementById\(/.test(src)) fail(`the service worker imports ${file}, which touches the DOM (it would crash in a worker)`)
+      for (const [, spec] of src.matchAll(/(?:from|import)\s*["'](\.[^"']+)["']/g)) visit(path.posix.normalize(path.posix.join(path.posix.dirname(file), spec)))
+    }
+    visit(worker)
+  }
+}
 
 // Everything index.html loads must be in the package.
 const htmlFile = path.join(distDir, 'index.html')
