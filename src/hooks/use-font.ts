@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useHydrated } from '@/hooks/use-hydrated'
-import { applyFont, loadFont } from '@/lib/fonts'
+import { applyFont, loadFont } from '@/config/fonts'
 import { useAppStore } from '@/store/useAppStore'
 
 /** How long to wait for a font before showing the page anyway (it is bundled, so this is a safety net). */

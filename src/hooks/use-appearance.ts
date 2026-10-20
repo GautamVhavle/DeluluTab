@@ -1,5 +1,5 @@
 import { useLayoutEffect } from 'react'
-import { applyAppearance } from '@/lib/appearance'
+import { applyAppearance } from '@/config/appearance'
 import { useHydrated } from '@/hooks/use-hydrated'
 import { useAppStore } from '@/store/useAppStore'
 

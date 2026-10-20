@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useHydrated } from '@/hooks/use-hydrated'
-import { APP_NAME, BLANK_FAVICON, msUntilNextMinute, tabTitle } from '@/lib/tabTitle'
+import { APP_NAME, BLANK_FAVICON, msUntilNextMinute, tabTitle } from '@/utils/tabTitle'
 import { useAppStore } from '@/store/useAppStore'
 import { Logo } from './Logo'
 

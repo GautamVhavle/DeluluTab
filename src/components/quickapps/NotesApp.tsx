@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Check, Copy, Eye, Pencil, Trash2 } from '@/lib/icons'
-import { cn } from '@/lib/utils'
+import { Check, Copy, Eye, Pencil, Trash2 } from '@/components/common/icons'
+import { cn } from '@/utils/cn'
 import { MAX_NOTES_LENGTH, useAppStore } from '@/store/useAppStore'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/common/button'
 import { Markdown } from './Markdown'
 
 /** Distraction-free scratchpad. Every keystroke goes straight into the store, which persists it. */

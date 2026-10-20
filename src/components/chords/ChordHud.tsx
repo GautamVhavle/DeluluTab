@@ -1,7 +1,7 @@
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
-import { Check, X, Zap } from '@/lib/icons'
-import { resolveChords, type ChordEngineState } from '@/lib/chords'
-import { cn } from '@/lib/utils'
+import { Check, X, Zap } from '@/components/common/icons'
+import { resolveChords, type ChordEngineState } from '@/utils/chords'
+import { cn } from '@/utils/cn'
 import { useAppStore } from '@/store/useAppStore'
 import { ShortcutIcon } from '@/components/shortcuts/ShortcutIcon'
 

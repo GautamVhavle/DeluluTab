@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from 'react'
-import { AmbientPlayer, type AmbientKind } from '@/lib/ambient'
+import { AmbientPlayer, type AmbientKind } from '@/services/ambient'
 import { useAppStore } from '@/store/useAppStore'
 
 /**

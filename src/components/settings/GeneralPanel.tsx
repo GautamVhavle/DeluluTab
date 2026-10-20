@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import { Logo } from '@/components/common/Logo'
-import { Input } from '@/components/ui/input'
-import { Switch } from '@/components/ui/switch'
-import { MAX_TAB_TITLE, tabTitle } from '@/lib/tabTitle'
-import { cn } from '@/lib/utils'
+import { Input } from '@/components/common/input'
+import { Switch } from '@/components/common/switch'
+import { MAX_TAB_TITLE, tabTitle } from '@/utils/tabTitle'
+import { cn } from '@/utils/cn'
 import { useAppStore, type TabTitleMode } from '@/store/useAppStore'
 import { Row, Section } from './SettingsUi'
 

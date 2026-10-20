@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
-import { ArrowLeftRight, Copy, Delete } from '@/lib/icons'
-import { CalcError, evaluate, formatResult } from '@/lib/calc'
-import { convert, categoryById, formatConverted, UNIT_CATEGORIES } from '@/lib/units'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { ArrowLeftRight, Copy, Delete } from '@/components/common/icons'
+import { CalcError, evaluate, formatResult } from '@/utils/calc'
+import { convert, categoryById, formatConverted, UNIT_CATEGORIES } from '@/utils/units'
+import { cn } from '@/utils/cn'
+import { Button } from '@/components/common/button'
+import { Input } from '@/components/common/input'
 
 const selectClass =
   'h-9 w-full rounded-md border border-input bg-background px-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'

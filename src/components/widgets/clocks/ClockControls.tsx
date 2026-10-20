@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils'
+import { cn } from '@/utils/cn'
 import { useAppStore } from '@/store/useAppStore'
 
 /** 12h / 24h and :ss toggles, revealed on hover. Shared by the clock styles that show a digital time. */

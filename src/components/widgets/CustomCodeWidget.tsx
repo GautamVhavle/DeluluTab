@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { Trash2 } from '@/lib/icons'
-import { MAX_WIDGET_CODE, MAX_WIDGET_NAME } from '@/lib/widgetLayout'
-import { WIDGET_FRAME_SANDBOX, WIDGET_MESSAGE, widgetSandboxUrl } from '@/lib/widgetSandbox'
-import { cn } from '@/lib/utils'
+import { Trash2 } from '@/components/common/icons'
+import { MAX_WIDGET_CODE, MAX_WIDGET_NAME } from '@/utils/widgetLayout'
+import { WIDGET_FRAME_SANDBOX, WIDGET_MESSAGE, widgetSandboxUrl } from '@/services/widgetSandbox'
+import { cn } from '@/utils/cn'
 import { useIsDark } from '@/hooks/use-theme'
 import { useAppStore, type CustomWidget } from '@/store/useAppStore'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
+import { Button } from '@/components/common/button'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/common/dialog'
+import { Input } from '@/components/common/input'
 
 const SANDBOX_URL = widgetSandboxUrl()
 const TABS = [

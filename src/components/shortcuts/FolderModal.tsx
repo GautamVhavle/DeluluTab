@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { useAppStore, type Folder } from '@/store/useAppStore'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
+import { Button } from '@/components/common/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/common/dialog'
+import { Input } from '@/components/common/input'
 
 interface Props {
   open: boolean

@@ -1,12 +1,12 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import { Branch, Edit, ExternalLink, Flame, Github, RefreshCw, Star } from '@/lib/icons'
+import { Branch, Edit, ExternalLink, Flame, Github, RefreshCw, Star } from '@/components/common/icons'
 import { useCachedResource } from '@/hooks/useCachedResource'
-import { bestDay, buildWeeks, fetchActivity, isGithubUsername, languageColor, streaks, type ContributionDay, type GithubActivity, type GithubRepo } from '@/lib/github'
-import { timeAgo } from '@/lib/news'
-import { cn } from '@/lib/utils'
+import { bestDay, buildWeeks, fetchActivity, isGithubUsername, languageColor, streaks, type ContributionDay, type GithubActivity, type GithubRepo } from '@/services/github'
+import { timeAgo } from '@/services/news'
+import { cn } from '@/utils/cn'
 import { useAppStore } from '@/store/useAppStore'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Button } from '@/components/common/button'
+import { Input } from '@/components/common/input'
 import type { WidgetProps } from './types'
 
 const TTL_MS = 30 * 60 * 1000

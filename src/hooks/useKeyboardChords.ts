@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { createChordEngine, IDLE_STATE, resolveChords, type ChordEngineState } from '@/lib/chords'
-import { navigateTo } from '@/lib/navigate'
+import { createChordEngine, IDLE_STATE, resolveChords, type ChordEngineState } from '@/utils/chords'
+import { navigateTo } from '@/utils/navigate'
 import { useAppStore } from '@/store/useAppStore'
 
 /** Lets the success state paint before the page navigates away. */

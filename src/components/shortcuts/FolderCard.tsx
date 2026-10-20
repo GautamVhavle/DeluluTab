@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowDown, ArrowUp, ChevronRight, Folder as FolderIcon, FolderOpen, MoreHorizontal, Pencil, Plus, Trash2 } from '@/lib/icons'
+import { ArrowDown, ArrowUp, ChevronRight, Folder as FolderIcon, FolderOpen, MoreHorizontal, Pencil, Plus, Trash2 } from '@/components/common/icons'
 import { useAppStore, type Folder, type Shortcut } from '@/store/useAppStore'
 import {
   DropdownMenu,
@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from '@/components/common/dropdown-menu'
 import { ShortcutTile } from './ShortcutTile'
 import { AddTile } from './AddTile'
 

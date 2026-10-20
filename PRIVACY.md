@@ -4,8 +4,8 @@ DeluluTab has no accounts, no analytics, no ads and no server of its own. Everyt
 
 ## What is stored, and where
 
-- **Settings, shortcuts, chords and widget choices** are saved with `chrome.storage.sync`. If Chrome Sync is on, Google syncs them across your devices like any extension's settings.
-- **Notes, tasks, saved tab groups, uploaded background images and your Unsplash access key** are saved with `chrome.storage.local`, on this device only.
+- **Settings, shortcuts, chords, widget choices and grid layouts** are saved with `chrome.storage.sync`. If Chrome Sync is on, Google syncs them across your devices like any extension's settings.
+- **Notes, tasks, saved tab groups, custom widget code, uploaded background images and your Unsplash access key** are saved with `chrome.storage.local`, on this device only. Custom widget HTML, CSS and JavaScript never leave this browser.
 - **The focus timer's state** (when the session ends, sessions finished today) is saved with `chrome.storage.local` so it survives closing the tab.
 - **Cached weather and news, and your last approximate location,** are kept in the page's local storage so a new tab opens instantly. Your location is rounded to about 1 km and kept for 24 hours.
 

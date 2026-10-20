@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ExternalLink, RefreshCw } from '@/lib/icons'
+import { ExternalLink, RefreshCw } from '@/components/common/icons'
 import { useCachedResource } from '@/hooks/useCachedResource'
-import { categoryById, fetchNews, NEWS_CATEGORIES, timeAgo } from '@/lib/news'
-import { cn } from '@/lib/utils'
+import { categoryById, fetchNews, NEWS_CATEGORIES, timeAgo } from '@/services/news'
+import { cn } from '@/utils/cn'
 import { useAppStore, type NewsCategory } from '@/store/useAppStore'
 import type { WidgetProps } from './types'
 

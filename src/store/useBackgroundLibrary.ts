@@ -1,9 +1,9 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import type { Tone } from '@/lib/color'
-import { processImageFile } from '@/lib/imageFiles'
-import { fetchRandomPhotos, UnsplashError, type UnsplashPhoto } from '@/lib/unsplash'
-import { createChromeStorage, subscribeToExternalChanges } from './chromeStorage'
+import type { Tone } from '@/utils/color'
+import { processImageFile } from '@/utils/imageFiles'
+import { fetchRandomPhotos, UnsplashError, type UnsplashPhoto } from '@/services/unsplash'
+import { createChromeStorage, subscribeToExternalChanges } from '@/services/storage/chromeStorage'
 
 /**
  * Device-local background data. Kept out of the synced app store: images are far past the 8KB

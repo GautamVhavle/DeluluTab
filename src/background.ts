@@ -2,7 +2,7 @@
  * DeluluTab's background service worker. Its one job: finish a Pomodoro session and notify the user when the
  * timer runs out while no new tab page is open (the page can't, because it is gone). It is woken by chrome.alarms.
  */
-import { armAlarm, complete, loadPomodoro, normalize, notifyPhaseEnd, NOTIFICATION_PREFIX, POMODORO_ALARM, savePomodoro, minutes } from '@/lib/pomodoro'
+import { armAlarm, complete, loadPomodoro, normalize, notifyPhaseEnd, NOTIFICATION_PREFIX, POMODORO_ALARM, savePomodoro, minutes } from '@/services/pomodoro'
 
 const DEFAULTS = { workMs: minutes(25), breakMs: minutes(5) }
 /** Alarms never fire early, but allow a little slack for clock rounding. */

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { playChime } from '@/lib/ambient'
+import { playChime } from '@/services/ambient'
 import {
   armAlarm,
   clearAlarm,
@@ -21,7 +21,7 @@ import {
   start,
   subscribePomodoro,
   type PomodoroState,
-} from '@/lib/pomodoro'
+} from '@/services/pomodoro'
 import { useAppStore } from '@/store/useAppStore'
 
 /**

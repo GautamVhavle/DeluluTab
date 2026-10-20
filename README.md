@@ -1,69 +1,154 @@
-# DeluluTab
+<p align="center">
+  <img src="public/logo.svg" alt="DeluluTab" width="72" height="72" />
+</p>
 
-An AI-focused Chrome extension that replaces the new tab page.
+<h1 align="center">DeluluTab</h1>
 
-- **Search bar** with Google, DuckDuckGo, Bing, Ecosia, Perplexity, ChatGPT and Claude (`/` or `Ctrl/⌘+K` to focus)
-- **AI prompt launcher** (with one-click prompt presets): type a prompt, press Enter, and it opens in ChatGPT, Claude, Grok, Gemini or Perplexity in a new tab. No API keys.
-- **Clock and greeting** in four styles (Digital, Retro flip, Analog, World dual-timezone) with 12/24-hour and seconds options, **weather** (Open-Meteo, no key), **news** by category
-- **Shortcuts and folders**, plus **keyboard chords**: press `` ` `` then type `gh` to jump to GitHub (the trigger key is yours to change)
-- **Tab stash** (save and restore sets of tabs), **GitHub activity** (contribution graph and recent repos), and a **focus timer** with Rain, Cafe and White-noise sounds
-- **Mini tools drawer**: notes (Markdown), tasks, calculator and unit converter
-- **Backgrounds**: gradient presets, Unsplash photos, or your own images, with a slideshow and an overlay that keeps text readable
-- Compact, Detailed and Focus layouts; light, dark and system themes; text size and accent color, and five fonts (Inter, JetBrains Mono, Outfit, Space Grotesk, Cinzel)
-- **Official logos** for shortcuts, AI providers and search engines, with a fallback chain (official file, then Google favicon service, then a symbol); can be switched off
-- **Settings** (gear icon): tab title and icon, appearance, widgets, chords, and backup/restore of your whole configuration as a JSON file
+<p align="center">
+  <strong>The new tab that already knows where you are going.</strong><br />
+  An AI-focused Chrome New Tab: GTA-style keyboard chords, a draggable bento grid, and launchers that open the model you actually want — no API keys.
+</p>
 
-**Stack:** Vite · React 18 + TypeScript · Tailwind CSS 3 · Radix/shadcn-style UI · react-icons (FontAwesome 6 + Material) · Zustand · Framer Motion · GSAP · Manifest V3
+<p align="center">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
+  <img alt="Manifest V3" src="https://img.shields.io/badge/manifest-V3-4285F4.svg" />
+  <img alt="React 18" src="https://img.shields.io/badge/React-18-61DAFB.svg" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.6-3178C6.svg" />
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-6-646CFF.svg" />
+</p>
 
-## Develop
+---
+
+## Features
+
+- **GTA chords.** Press `` ` ``, then type a short sequence. `gh` opens GitHub, `yt` YouTube, `gpt` ChatGPT. The trigger key is yours to change.
+- **Drag-and-drop grid.** Arrange and resize widgets like an iOS home screen. Each layout mode (Detailed, Compact, Focus) keeps its own positions.
+- **Direct AI launchers.** Type a prompt, press Enter, and it opens in ChatGPT, Claude, Grok, Gemini or Perplexity. No API keys, and DeluluTab never sees the reply.
+- **Custom code widgets.** Drop in your own HTML, CSS and JavaScript. It runs in a sandboxed frame that cannot touch the extension page.
+- **Dynamic themes.** Light, dark and system, five bundled fonts, accent color, text size, gradient presets, Unsplash photos or your own images.
+- **Search** across Google, DuckDuckGo, Bing, Ecosia, Perplexity, ChatGPT and Claude. Focus the bar with `/` or `Ctrl/⌘+K`.
+- **Clock** in four styles (Digital, Retro flip, Analog, World dual-timezone), **weather** from Open-Meteo, and **news** by category.
+- **Tab stash**, a **GitHub** contribution graph, a **focus timer** with Rain, Cafe and White-noise, and a **mini tools** drawer (Markdown notes, tasks, calculator, unit converter).
+- **Official logos** for shortcuts, AI providers and search engines, with a fallback chain. Turn network logos off in Settings.
+- **Settings hub** for the tab title and icon, appearance, widgets, chords, and a JSON backup of the whole configuration.
+
+## Tech stack
+
+| | |
+| --- | --- |
+| Build | Vite 6 |
+| UI | React 18, TypeScript |
+| Styling | Tailwind CSS, shadcn-style primitives (Radix) |
+| State | Zustand, split across single-purpose slices |
+| Motion | Framer Motion, GSAP |
+| Layout | `react-grid-layout` |
+| Extension | Chrome Manifest V3 |
+
+## Install
 
 ```bash
+git clone https://github.com/GautamVhavle/DeluluTab.git
+cd DeluluTab
 npm install
-npm run dev        # UI at http://localhost:5173 (chrome.* APIs are replaced by localStorage)
-npm run typecheck
+npm run build
 ```
 
-## Build, package, install
+Load the unpacked extension:
+
+1. Open `chrome://extensions`.
+2. Turn on **Developer mode**.
+3. Choose **Load unpacked** and select the `dist/` folder.
+4. Open a new tab.
+
+After you rebuild, press the reload icon on the extension card. `npm run dev` serves the UI at `http://localhost:5173` and stores data in `localStorage` instead of `chrome.*`.
 
 ```bash
-npm run build         # type-check + production build into dist/
-npm run verify:dist   # check dist/ against the manifest and Web Store rules
-npm run package       # build + verify + zip -> release/DeluluTab-v<version>.zip
+npm run typecheck     # tsc only
+npm run verify:dist   # check dist/ against the manifest
+npm run package       # build + verify + zip → release/DeluluTab-v<version>.zip
 ```
 
-**Load it in Chrome**
+The version lives in `package.json`. The build stamps it into the manifest.
 
-1. `npm run build`
-2. Open `chrome://extensions` and turn on **Developer mode**
-3. **Load unpacked** and pick the `dist/` folder (or unzip the release zip and pick that folder)
-4. Open a new tab
+## Keyboard chords
 
-After rebuilding, press the reload icon on the extension's card.
+A chord is a trigger key followed by a short sequence. Nothing happens until the trigger, so normal typing is left alone.
 
-The version lives in `package.json`; the build stamps it into the manifest.
+```text
+press `          the chord HUD appears
+type  g h        GitHub opens
+type  y t        YouTube
+type  r d        Reddit
+type  x          X
+type  g p t      ChatGPT
+Esc              cancel
+```
+
+Defaults ship with those five. Add or rewrite any sequence in **Settings → Chords**. The trigger defaults to `` ` `` (`Backquote`). Function keys and a few punctuation keys are also allowed; a trigger that is not typing-safe is called out in the panel so it does not steal characters from a text field.
+
+Sequences cannot be prefixes of each other (`g` and `gh` cannot both exist). A chord always opens the shortcut it is bound to, so renaming a shortcut does not break the chord.
+
+## Custom widgets
+
+**Settings → Widgets → Add custom widget** opens an editor with HTML, CSS and JavaScript tabs. The preview is an iframe whose origin is opaque: it can run scripts, but it cannot read the new-tab page, extension storage, or cookies. Up to 8 widgets, 24,000 characters each. Their code stays in `chrome.storage.local` on this device.
+
+The grid only renders widgets listed in `src/components/widgets/registry.tsx`. A new built-in widget is a registry entry plus a settings toggle. The grid itself does not change.
 
 ## Where things live
 
-| Data | Stored in | Syncs across devices |
+| Data | Stored in | Syncs |
 | --- | --- | --- |
-| Settings, shortcuts, chords, widget choices | `chrome.storage.sync` | yes |
-| Notes, tasks | `chrome.storage.local` | no |
+| Settings, shortcuts, chords, widget choices, grid layouts | `chrome.storage.sync` | yes |
+| Notes, tasks, tab stashes, custom widget code | `chrome.storage.local` | no |
 | Uploaded wallpapers, Unsplash key, photo queue | `chrome.storage.local` | no |
 | Weather and news cache, theme mirror | `localStorage` | no |
 
-See [PRIVACY.md](PRIVACY.md) for what leaves your browser, and [RELEASING.md](RELEASING.md) for the release checklist.
+See [PRIVACY.md](PRIVACY.md) for what leaves the browser, and [RELEASING.md](RELEASING.md) for the release checklist.
 
 ## Project layout
 
-```
-index.html                 new tab entry (chrome_url_overrides.newtab)
-public/                    manifest.json, icons, logo.svg (tab icon), theme-boot.js (copied into dist/ as-is)
-scripts/package.mjs        verifies dist/ and builds the release zip
-src/background.ts          MV3 service worker: finishes focus sessions via chrome.alarms
+```text
 src/
-  App.tsx                  shell: header, dashboard, settings panels
-  components/              widgets, shortcuts, chords, settings, background, quickapps, common, ui
-  hooks/                   theme, hydration, chords, cached fetch, geolocation
-  lib/                     icons.ts (all UI icons), backup, appearance, tab title, calc, units, weather, news, ...
-  store/                   defaults.ts (everything DeluluTab starts with), zustand store, chrome.storage adapters
+├── assets/                 logos and static media, when added
+├── components/
+│   ├── common/             buttons, dialogs, icons, logos
+│   ├── layout/             header shell, mode switcher, dashboard grid
+│   ├── widgets/            one module per widget, plus the grid registry
+│   ├── settings/           settings dialog and tabbed panels
+│   ├── background/         wallpaper engine
+│   ├── chords/             chord HUD and editor
+│   ├── shortcuts/          tiles, folders, editor
+│   └── quickapps/          notes, tasks, calculator, converter
+├── config/                 defaults, engines, fonts, themes
+├── hooks/                  chords, theme, weather-adjacent hooks
+├── services/               weather, news, unsplash, github, storage port
+│   └── storage/            StorageAdapter and the chrome.storage adapter
+├── store/                  Zustand store composed from slices
+│   └── slices/             settings, library, widgets, notes, stash, session
+├── types/                  shared TypeScript interfaces
+└── utils/                  pure helpers (chords, layout, formatting)
 ```
+
+Persistence goes through `StorageAdapter`. Components never call `chrome.storage`. Outside the extension (the Vite dev server) the same store falls back to `localStorage`.
+
+## Contributing
+
+1. Fork the repository and create a branch from `main`.
+2. `npm install`, then `npm run dev` to work in the browser.
+3. Keep a change to one concern: a widget in `components/widgets`, an API call in `services`, a keypress in `hooks`.
+4. `npm run build` must pass before you open a pull request. That runs the typecheck and the production build.
+5. Describe what changed and how you checked it.
+
+Please open an issue before a large redesign. Bug fixes and small, focused improvements are welcome as pull requests.
+
+## License
+
+MIT. Copyright (c) 2026 GautamVhavle.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+The full text is in [LICENSE](LICENSE).

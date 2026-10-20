@@ -1,12 +1,11 @@
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
-import { Edit, Gear, ImageIcon, Moon, Sun } from '@/lib/icons'
-import { Button } from '@/components/ui/button'
+import { Edit, Gear, ImageIcon, Moon, Sun } from '@/components/common/icons'
+import { Button } from '@/components/common/button'
 import { BackgroundEngine } from '@/components/background/BackgroundEngine'
 import { ChordHud } from '@/components/chords/ChordHud'
 import { TabHeader } from '@/components/common/TabHeader'
-import { DashboardLayout } from '@/components/DashboardLayout'
-import { ModeSwitcher } from '@/components/ModeSwitcher'
-import { QuickAppsDrawer } from '@/components/quickapps/QuickAppsDrawer'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { ModeSwitcher } from '@/components/layout/ModeSwitcher'
 import { CustomWidgetEditor } from '@/components/widgets/CustomCodeWidget'
 import { useApplyAppearance } from '@/hooks/use-appearance'
 import { useApplyFont } from '@/hooks/use-font'
@@ -19,6 +18,7 @@ import { useAppStore } from '@/store/useAppStore'
 // Settings panels are only needed once opened, so they load on demand instead of weighing down every new tab.
 const BackgroundSettings = lazy(() => import('@/components/background/BackgroundSettings').then((m) => ({ default: m.BackgroundSettings })))
 const SettingsDialog = lazy(() => import('@/components/settings/SettingsDialog').then((m) => ({ default: m.SettingsDialog })))
+const QuickAppsDrawer = lazy(() => import('@/components/quickapps/QuickAppsDrawer').then((m) => ({ default: m.QuickAppsDrawer })))
 
 /** Loads and mounts its children the first time `open` is true, then keeps them mounted so close animations can play. */
 function MountOnFirstOpen({ open, children }: { open: boolean; children: ReactNode }) {
@@ -103,8 +103,10 @@ export default function App() {
             <BackgroundSettings open={backgroundOpen} onOpenChange={setBackgroundOpen} />
           </MountOnFirstOpen>
           <ModeSwitcher />
-          <QuickAppsDrawer />
-          <CustomWidgetEditor />
+          <Suspense fallback={null}>
+            <QuickAppsDrawer />
+            <CustomWidgetEditor />
+          </Suspense>
         </>
       )}
     </div>

@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react'
-import { cn } from '@/lib/utils'
-import { hostnameOf, normalizeUrl } from '@/lib/url'
+import { cn } from '@/utils/cn'
+import { hostnameOf, normalizeUrl } from '@/utils/url'
 import { useAppStore, type Shortcut } from '@/store/useAppStore'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/common/button'
 import {
   Dialog,
   DialogContent,
@@ -10,8 +10,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
+} from '@/components/common/dialog'
+import { Input } from '@/components/common/input'
 import { ICONS, ICON_NAMES, ShortcutIcon, isImageUrl } from './ShortcutIcon'
 
 type IconMode = 'auto' | 'preset' | 'custom'

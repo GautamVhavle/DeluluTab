@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { Check, ChevronDown, type IconType } from '@/lib/icons'
+import { Check, ChevronDown, type IconType } from '@/components/common/icons'
 import { PlatformLogo } from '@/components/common/PlatformLogo'
-import { engineById, SEARCH_ENGINES } from '@/lib/searchEngines'
-import { navigateTo } from '@/lib/navigate'
-import { isMac } from '@/lib/platform'
-import { cn } from '@/lib/utils'
+import { engineById, SEARCH_ENGINES } from '@/config/searchEngines'
+import { navigateTo } from '@/utils/navigate'
+import { isMac } from '@/utils/platform'
+import { cn } from '@/utils/cn'
 import { useAppStore } from '@/store/useAppStore'
 import {
   DropdownMenu,
@@ -13,7 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from '@/components/common/dropdown-menu'
 import type { WidgetProps } from './types'
 
 const isEditable = (el: EventTarget | null) => {

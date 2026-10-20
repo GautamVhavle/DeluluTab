@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react'
-import { Export, Import, Restore, Warning, CheckCircle } from '@/lib/icons'
-import { backupFileName, buildBackup, MAX_BACKUP_BYTES, parseBackup, type ParseResult } from '@/lib/backup'
+import { Export, Import, Restore, Warning, CheckCircle } from '@/components/common/icons'
+import { backupFileName, buildBackup, MAX_BACKUP_BYTES, parseBackup, type ParseResult } from '@/services/backup'
 import { useAppStore } from '@/store/useAppStore'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/common/button'
 import { Section } from './SettingsUi'
 
 function download(text: string, fileName: string) {

@@ -16,7 +16,7 @@ import {
   Sun,
   Wind,
   type IconType,
-} from '@/lib/icons'
+} from '@/components/common/icons'
 import { useCachedResource } from '@/hooks/useCachedResource'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import {
@@ -28,11 +28,11 @@ import {
   searchPlaces,
   type Place,
   type WeatherKind,
-} from '@/lib/weather'
-import { cn } from '@/lib/utils'
+} from '@/services/weather'
+import { cn } from '@/utils/cn'
 import { useAppStore, type TemperatureUnit } from '@/store/useAppStore'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Button } from '@/components/common/button'
+import { Input } from '@/components/common/input'
 import type { WidgetProps } from './types'
 
 const TTL_MS = 15 * 60 * 1000

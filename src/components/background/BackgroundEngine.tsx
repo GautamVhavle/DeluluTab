@@ -1,6 +1,6 @@
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
-import { blobsCss } from '@/lib/gradients'
-import { scrimFor } from '@/lib/color'
+import { blobsCss } from '@/config/gradients'
+import { scrimFor } from '@/utils/color'
 import { useIsDark } from '@/hooks/use-theme'
 import { useAppStore } from '@/store/useAppStore'
 import { useBackgroundFrame, type Frame } from './useBackgroundFrame'

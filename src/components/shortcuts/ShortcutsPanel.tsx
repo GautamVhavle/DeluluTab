@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { FolderPlus, Plus } from '@/lib/icons'
+import { FolderPlus, Plus } from '@/components/common/icons'
 import { useAppStore, type Folder, type Shortcut } from '@/store/useAppStore'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from '@/components/common/dropdown-menu'
 import { AddTile } from './AddTile'
 import { FolderCard } from './FolderCard'
 import { FolderModal } from './FolderModal'

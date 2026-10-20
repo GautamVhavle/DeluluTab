@@ -1,9 +1,9 @@
 import { lazy, Suspense, useRef, useState, type KeyboardEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Calculator, CheckSquare, NotebookPen, PanelRightOpen, type IconType } from '@/lib/icons'
-import { cn } from '@/lib/utils'
+import { Calculator, CheckSquare, NotebookPen, PanelRightOpen, type IconType } from '@/components/common/icons'
+import { cn } from '@/utils/cn'
 import { useAppStore, type QuickAppsTab } from '@/store/useAppStore'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/common/sheet'
 
 const TABS: { id: QuickAppsTab; label: string; Icon: IconType }[] = [
   { id: 'notes', label: 'Notes', Icon: NotebookPen },

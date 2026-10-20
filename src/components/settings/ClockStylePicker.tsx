@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { allZones, cityName, isValidTimeZone, normalizeZoneInput, POPULAR_ZONES, zonedParts } from '@/lib/timezones'
-import { cn } from '@/lib/utils'
+import { allZones, cityName, isValidTimeZone, normalizeZoneInput, POPULAR_ZONES, zonedParts } from '@/utils/timezones'
+import { cn } from '@/utils/cn'
 import { useAppStore, type ClockStyle } from '@/store/useAppStore'
-import { Input } from '@/components/ui/input'
+import { Input } from '@/components/common/input'
 import { Section } from './SettingsUi'
 
 function MiniDigital() {

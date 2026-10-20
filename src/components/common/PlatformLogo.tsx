@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { IconType } from 'react-icons'
 import { fallbackSymbol, getFaviconCandidates, rememberLogo } from '@/utils/getFavicon'
-import { cn } from '@/lib/utils'
+import { cn } from '@/utils/cn'
 import { useAppStore } from '@/store/useAppStore'
 
 interface Props {

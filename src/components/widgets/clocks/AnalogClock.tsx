@@ -1,6 +1,6 @@
 import { useRef } from 'react'
-import { dateLabel, greetingFor, handAngles, timeParts } from '@/lib/clock'
-import { cn } from '@/lib/utils'
+import { dateLabel, greetingFor, handAngles, timeParts } from '@/utils/clock'
+import { cn } from '@/utils/cn'
 import { useAppStore } from '@/store/useAppStore'
 import type { WidgetProps } from '../types'
 import { useNow } from './useNow'

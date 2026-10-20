@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, Plus, X } from '@/lib/icons'
-import { cn } from '@/lib/utils'
+import { Check, Plus, X } from '@/components/common/icons'
+import { cn } from '@/utils/cn'
 import { MAX_TODO_LENGTH, useAppStore } from '@/store/useAppStore'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Button } from '@/components/common/button'
+import { Input } from '@/components/common/input'
 
 export function TodoApp() {
   const todos = useAppStore((s) => s.todos)

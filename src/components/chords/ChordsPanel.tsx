@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Plus, X } from '@/lib/icons'
+import { Plus, X } from '@/components/common/icons'
 import {
   CHORD_WINDOW_STEP_MS,
   MAX_CHORD_LENGTH,
@@ -9,13 +9,13 @@ import {
   triggerLabel,
   validateSequence,
   validateTrigger,
-} from '@/lib/chords'
-import { hostnameOf, normalizeUrl } from '@/lib/url'
-import { cn } from '@/lib/utils'
+} from '@/utils/chords'
+import { hostnameOf, normalizeUrl } from '@/utils/url'
+import { cn } from '@/utils/cn'
 import { useAppStore, type Chord, type Shortcut } from '@/store/useAppStore'
 import { ShortcutIcon } from '@/components/shortcuts/ShortcutIcon'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Button } from '@/components/common/button'
+import { Input } from '@/components/common/input'
 import { Row, Section, SliderRow } from '@/components/settings/SettingsUi'
 
 /** Click "Change key", press the key you want. Keys that can't work (letters, browser shortcuts) say why. */

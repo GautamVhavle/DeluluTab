@@ -1,6 +1,6 @@
-import { ArrowLeft, ArrowRight, MoreHorizontal, Pencil, Trash2 } from '@/lib/icons'
+import { ArrowLeft, ArrowRight, MoreHorizontal, Pencil, Trash2 } from '@/components/common/icons'
 import { motion } from 'framer-motion'
-import { cn } from '@/lib/utils'
+import { cn } from '@/utils/cn'
 import { useAppStore, type Shortcut } from '@/store/useAppStore'
 import {
   DropdownMenu,
@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from '@/components/common/dropdown-menu'
 import { ShortcutIcon } from './ShortcutIcon'
 
 interface Props {

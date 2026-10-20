@@ -1,5 +1,1 @@
-import type { LayoutMode } from '@/store/useAppStore'
-
-export interface WidgetProps {
-  mode: LayoutMode
-}
+export type { WidgetProps } from '@/types/widget'

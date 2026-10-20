@@ -1,6 +1,6 @@
-import { Plus } from '@/lib/icons'
+import { Plus } from '@/components/common/icons'
 import { motion } from 'framer-motion'
-import { cn } from '@/lib/utils'
+import { cn } from '@/utils/cn'
 
 export function AddTile({ compact, label, onClick }: { compact: boolean; label: string; onClick: () => void }) {
   return (

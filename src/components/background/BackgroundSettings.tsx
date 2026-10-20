@@ -1,13 +1,13 @@
 import { useRef, useState, type ReactNode } from 'react'
-import { ImagePlus, Shuffle, X } from '@/lib/icons'
-import { blobsCss, GRADIENTS } from '@/lib/gradients'
-import { UNSPLASH_HOME } from '@/lib/unsplash'
-import { cn } from '@/lib/utils'
+import { ImagePlus, Shuffle, X } from '@/components/common/icons'
+import { blobsCss, GRADIENTS } from '@/config/gradients'
+import { UNSPLASH_HOME } from '@/services/unsplash'
+import { cn } from '@/utils/cn'
 import { useAppStore, type BackgroundRotation, type BackgroundSource } from '@/store/useAppStore'
 import { useBackgroundLibrary } from '@/store/useBackgroundLibrary'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Button } from '@/components/common/button'
+import { Input } from '@/components/common/input'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/common/sheet'
 
 const SOURCES: { value: BackgroundSource; label: string }[] = [
   { value: 'gradient', label: 'Gradient' },

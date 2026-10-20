@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { FONTS, loadFont } from '@/lib/fonts'
-import { cn } from '@/lib/utils'
+import { FONTS, loadFont } from '@/config/fonts'
+import { cn } from '@/utils/cn'
 import { useAppStore } from '@/store/useAppStore'
 
 /** Five typefaces, each previewed in itself. Previews need the fonts, so opening the picker loads all five (they're local files). */
