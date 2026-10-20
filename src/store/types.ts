@@ -1,5 +1,16 @@
 export type Theme = 'dark' | 'light' | 'dynamic'
 export type LayoutMode = 'compact' | 'detailed' | 'focus'
+export type ClockFormat = '12h' | '24h'
+export type TemperatureUnit = 'c' | 'f'
+export type SearchEngineId = 'google' | 'duckduckgo' | 'bing' | 'ecosia' | 'perplexity' | 'chatgpt' | 'claude'
+export type NewsCategory = 'tech' | 'world' | 'business' | 'ai'
+
+export interface WeatherLocation {
+  name: string
+  latitude: number
+  longitude: number
+}
+
 export type BackgroundSource = 'unsplash' | 'gradient' | 'custom'
 export type BackgroundRotation = 'off' | 'newtab' | '1m' | '5m' | '15m' | '1h'
 
@@ -19,6 +30,15 @@ export interface Settings {
   backgroundDim: number
   /** Background blur in px, 0-20. */
   backgroundBlur: number
+  clockFormat: ClockFormat
+  showSeconds: boolean
+  /** Optional, used in the greeting. */
+  userName: string
+  searchEngine: SearchEngineId
+  temperatureUnit: TemperatureUnit
+  /** null = detect automatically with the browser's geolocation. */
+  weatherLocation: WeatherLocation | null
+  newsCategory: NewsCategory
   chordTrigger: ChordTrigger
   /** Max pause between chord keystrokes before the chord window closes. */
   chordWindowMs: number

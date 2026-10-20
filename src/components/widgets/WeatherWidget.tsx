@@ -1,25 +1,285 @@
-import { CloudSun } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import {
+  Cloud,
+  CloudDrizzle,
+  CloudFog,
+  CloudLightning,
+  CloudMoon,
+  CloudRain,
+  CloudSnow,
+  CloudSun,
+  Droplets,
+  LocateFixed,
+  MapPin,
+  Moon,
+  Search,
+  Sun,
+  Wind,
+  type LucideIcon,
+} from 'lucide-react'
+import { useCachedResource } from '@/hooks/useCachedResource'
+import { useGeolocation } from '@/hooks/useGeolocation'
+import {
+  cityFromTimezone,
+  describeWeather,
+  fetchForecast,
+  formatTemp,
+  formatWind,
+  searchPlaces,
+  type Place,
+  type WeatherKind,
+} from '@/lib/weather'
+import { cn } from '@/lib/utils'
+import { useAppStore, type TemperatureUnit } from '@/store/useAppStore'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import type { WidgetProps } from './types'
 
-/** Placeholder until a weather provider is wired up. */
+const TTL_MS = 15 * 60 * 1000
+
+const ICONS: Record<WeatherKind, LucideIcon> = {
+  clear: Sun,
+  partly: CloudSun,
+  cloudy: Cloud,
+  fog: CloudFog,
+  drizzle: CloudDrizzle,
+  rain: CloudRain,
+  snow: CloudSnow,
+  storm: CloudLightning,
+}
+
+function WeatherIcon({ code, isDay = true, className }: { code: number; isDay?: boolean; className?: string }) {
+  const { kind } = describeWeather(code)
+  const Icon = !isDay && kind === 'clear' ? Moon : !isDay && kind === 'partly' ? CloudMoon : ICONS[kind]
+  return <Icon className={className} aria-hidden />
+}
+
+const weekday = (date: string, i: number) =>
+  i === 0 ? 'Today' : new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: 'short' })
+
+function UnitToggle({ unit, onChange }: { unit: TemperatureUnit; onChange: (u: TemperatureUnit) => void }) {
+  return (
+    <div role="radiogroup" aria-label="Temperature unit" className="flex rounded-lg bg-secondary/70 p-0.5">
+      {(['c', 'f'] as const).map((u) => (
+        <button
+          key={u}
+          role="radio"
+          aria-checked={unit === u}
+          onClick={() => onChange(u)}
+          className={cn(
+            'rounded-md px-2 py-0.5 text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            unit === u ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          °{u.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function LocationPicker({ onPick, onUseMyLocation, onClose }: { onPick: (p: Place) => void; onUseMyLocation: () => void; onClose: () => void }) {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<Place[]>([])
+  const [state, setState] = useState<'idle' | 'loading' | 'empty' | 'error'>('idle')
+
+  useEffect(() => {
+    const q = query.trim()
+    if (q.length < 2) {
+      setResults([])
+      setState('idle')
+      return
+    }
+    const controller = new AbortController()
+    setState('loading')
+    const timer = setTimeout(() => {
+      searchPlaces(q, controller.signal).then(
+        (places) => {
+          setResults(places)
+          setState(places.length ? 'idle' : 'empty')
+        },
+        (err) => !controller.signal.aborted && (setResults([]), setState(err?.name === 'AbortError' ? 'idle' : 'error')),
+      )
+    }, 300)
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
+  }, [query])
+
+  return (
+    <div className="flex h-full min-h-0 flex-col gap-2">
+      <div className="flex gap-2">
+        <Input
+          autoFocus
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => e.key === 'Escape' && (e.stopPropagation(), onClose())}
+          placeholder="Search for a city"
+          aria-label="Search for a city"
+          className="h-8"
+        />
+        <Button size="sm" variant="outline" onClick={onUseMyLocation} aria-label="Use my location" title="Use my location">
+          <LocateFixed />
+        </Button>
+        <Button size="sm" variant="ghost" onClick={onClose}>Cancel</Button>
+      </div>
+      <ul className="min-h-0 flex-1 space-y-0.5 overflow-y-auto text-sm">
+        {results.map((p) => (
+          <li key={`${p.latitude},${p.longitude}`}>
+            <button
+              onClick={() => onPick(p)}
+              className="flex w-full items-baseline gap-2 rounded-md px-2 py-1 text-left outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="font-medium">{p.name}</span>
+              <span className="truncate text-xs text-muted-foreground">{p.region}</span>
+            </button>
+          </li>
+        ))}
+        {state === 'loading' && <li className="px-2 text-xs text-muted-foreground">Searching…</li>}
+        {state === 'empty' && <li className="px-2 text-xs text-muted-foreground">No places match “{query.trim()}”.</li>}
+        {state === 'error' && <li role="alert" className="px-2 text-xs text-red-500">Couldn't search right now. Try again.</li>}
+      </ul>
+    </div>
+  )
+}
+
 export function WeatherWidget({ mode }: WidgetProps) {
-  if (mode === 'compact') {
+  const unit = useAppStore((s) => s.settings.temperatureUnit)
+  const location = useAppStore((s) => s.settings.weatherLocation)
+  const updateSettings = useAppStore((s) => s.updateSettings)
+
+  const [picking, setPicking] = useState(false)
+  const [geoAttempt, setGeoAttempt] = useState(0)
+  const geo = useGeolocation(location === null, geoAttempt)
+
+  const coords = location ?? geo.coords
+  const { data, error, loading, refresh } = useCachedResource(
+    coords ? `weather:${coords.latitude},${coords.longitude}` : null,
+    (signal) => fetchForecast(coords!.latitude, coords!.longitude, signal),
+    TTL_MS,
+  )
+
+  const compact = mode === 'compact'
+  const place = location?.name ?? (data ? cityFromTimezone(data.timezone) : 'Your location')
+  const setUnit = (temperatureUnit: TemperatureUnit) => updateSettings({ temperatureUnit })
+
+  const useMyLocation = () => {
+    updateSettings({ weatherLocation: null })
+    setGeoAttempt((n) => n + 1)
+    setPicking(false)
+  }
+
+  if (picking) {
     return (
-      <div className="flex h-full items-center gap-2 text-sm">
-        <CloudSun className="h-5 w-5 text-amber-400" />
-        <span className="font-medium">21°</span>
-        <span className="text-xs text-muted-foreground">Partly cloudy</span>
+      <LocationPicker
+        onClose={() => setPicking(false)}
+        onUseMyLocation={useMyLocation}
+        onPick={(p) => {
+          updateSettings({ weatherLocation: { name: p.name, latitude: p.latitude, longitude: p.longitude } })
+          setPicking(false)
+        }}
+      />
+    )
+  }
+
+  // Nothing to show yet.
+  if (!data) {
+    const message = geo.error || error
+    return (
+      <div className="flex h-full flex-col justify-center gap-2 text-sm" aria-busy={!message}>
+        {message ? (
+          <>
+            <p role="alert" className="text-muted-foreground">{message}</p>
+            <div className="flex gap-2">
+              <Button size="sm" variant="secondary" onClick={() => setPicking(true)}>Choose a city</Button>
+              {coords ? (
+                <Button size="sm" variant="ghost" onClick={refresh}>Try again</Button>
+              ) : (
+                <Button size="sm" variant="ghost" onClick={() => setGeoAttempt((n) => n + 1)}>Try my location</Button>
+              )}
+            </div>
+          </>
+        ) : (
+          <p className="animate-pulse text-muted-foreground">{geo.loading ? 'Finding your location…' : 'Loading weather…'}</p>
+        )}
       </div>
     )
   }
-  return (
-    <div className="flex h-full items-center justify-between">
-      <div>
-        <h3 className="text-sm font-medium text-muted-foreground">Weather</h3>
-        <p className="mt-1 text-4xl font-light">21°</p>
-        <p className="text-xs text-muted-foreground">Partly cloudy · placeholder data</p>
+
+  const { current, daily } = data
+  const { label } = describeWeather(current.code)
+  const today = daily[0]
+
+  if (compact) {
+    return (
+      <div className="flex h-full items-center gap-2 text-sm">
+        <WeatherIcon code={current.code} isDay={current.isDay} className="h-5 w-5 shrink-0 text-amber-400" />
+        <span className="font-medium tabular-nums">{formatTemp(current.temp, unit)}°</span>
+        <button
+          onClick={() => setPicking(true)}
+          title="Change location"
+          className="min-w-0 truncate rounded text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {label} · {place}
+        </button>
+        <button
+          onClick={() => setUnit(unit === 'c' ? 'f' : 'c')}
+          aria-label={`Switch to °${unit === 'c' ? 'F' : 'C'}`}
+          className="ml-auto rounded px-1 text-[11px] text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          °{unit.toUpperCase()}
+        </button>
       </div>
-      <CloudSun className="h-12 w-12 text-amber-400" />
+    )
+  }
+
+  return (
+    <div className="flex h-full flex-col gap-2">
+      <div className="flex items-center justify-between gap-2">
+        <button
+          onClick={() => setPicking(true)}
+          title="Change location"
+          className="flex min-w-0 items-center gap-1.5 rounded-md text-sm font-medium outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          <span className="truncate">{place}</span>
+          {location === null && <span className="shrink-0 text-[10px] font-normal uppercase tracking-wide text-muted-foreground">auto</span>}
+          <Search className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden />
+        </button>
+        <UnitToggle unit={unit} onChange={setUnit} />
+      </div>
+
+      <div className="flex min-h-0 flex-1 items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <WeatherIcon code={current.code} isDay={current.isDay} className="h-11 w-11 shrink-0 text-amber-400" />
+          <div>
+            <p className="text-4xl font-light tabular-nums leading-none">{formatTemp(current.temp, unit)}°</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {label}
+              {today && <> · H {formatTemp(today.max, unit)}° L {formatTemp(today.min, unit)}°</>}
+            </p>
+            <p className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+              <span>Feels {formatTemp(current.feelsLike, unit)}°</span>
+              <span className="flex items-center gap-0.5"><Droplets className="h-3 w-3" />{Math.round(current.humidity)}%</span>
+              <span className="flex items-center gap-0.5"><Wind className="h-3 w-3" />{formatWind(current.windKmh, unit)}</span>
+            </p>
+          </div>
+        </div>
+
+        <ul className="hidden shrink-0 gap-3 sm:flex" aria-label="Forecast">
+          {daily.slice(1, 5).map((d, i) => (
+            <li key={d.date} className="flex flex-col items-center gap-1 text-xs">
+              <span className="text-muted-foreground">{weekday(d.date, i + 1)}</span>
+              <WeatherIcon code={d.code} className="h-5 w-5" />
+              <span className="tabular-nums">{formatTemp(d.max, unit)}°</span>
+              <span className="tabular-nums text-muted-foreground">{formatTemp(d.min, unit)}°</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      {error && <p role="alert" className="text-[11px] text-red-500">{error} Showing the last update.</p>}
+      {loading && !error && <span className="sr-only">Updating weather</span>}
     </div>
   )
 }

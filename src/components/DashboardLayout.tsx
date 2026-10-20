@@ -5,13 +5,13 @@ import { useAppStore, type LayoutMode, type WidgetKey } from '@/store/useAppStor
 import { ClockWidget } from './widgets/ClockWidget'
 import { NewsWidget } from './widgets/NewsWidget'
 import { QuickAppsWidget } from './widgets/QuickAppsWidget'
-import { SearchWidget } from './widgets/SearchWidget'
+import { SearchBarWidget } from './widgets/SearchBarWidget'
 import { WeatherWidget } from './widgets/WeatherWidget'
 import type { WidgetProps } from './widgets/types'
 
 const WIDGETS: Record<WidgetKey, ComponentType<WidgetProps>> = {
   clock: ClockWidget,
-  search: SearchWidget,
+  search: SearchBarWidget,
   weather: WeatherWidget,
   quickApps: QuickAppsWidget,
   news: NewsWidget,
@@ -50,11 +50,12 @@ const MODES: Record<LayoutMode, ModeConfig> = {
     wrapper: 'max-w-3xl p-3',
     grid: 'grid grid-cols-2 gap-2 sm:grid-cols-4',
     card: 'rounded-xl border bg-card/70 p-3 backdrop-blur',
-    order: ['clock', 'weather', 'search', 'quickApps'],
+    order: ['clock', 'weather', 'search', 'news', 'quickApps'],
     spans: {
       clock: 'col-span-2',
       weather: 'col-span-2',
       search: 'col-span-2 sm:col-span-4',
+      news: 'col-span-2 sm:col-span-4',
       quickApps: 'col-span-2 sm:col-span-4',
     },
   },

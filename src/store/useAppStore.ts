@@ -34,6 +34,14 @@ function moveWithinGroup<T extends { id: string }>(
   return next
 }
 
+const prefers12h = () => {
+  try {
+    return !!new Intl.DateTimeFormat(undefined, { hour: 'numeric' }).resolvedOptions().hour12
+  } catch {
+    return false
+  }
+}
+
 const defaultSettings: Settings = {
   theme: 'dark',
   layoutMode: 'detailed',
@@ -43,6 +51,13 @@ const defaultSettings: Settings = {
   backgroundRotation: 'off',
   backgroundDim: 0,
   backgroundBlur: 0,
+  clockFormat: prefers12h() ? '12h' : '24h',
+  showSeconds: false,
+  userName: '',
+  searchEngine: 'google',
+  temperatureUnit: 'c',
+  weatherLocation: null,
+  newsCategory: 'tech',
   chordTrigger: 'Backquote',
   chordWindowMs: 1000,
 }
@@ -65,9 +80,9 @@ const defaultChords: Chord[] = [
 
 const defaultWidgets: WidgetsState = {
   clock: true,
-  weather: false,
+  weather: true,
   search: true,
-  news: false,
+  news: true,
   quickApps: true,
 }
 
@@ -181,7 +196,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: STORAGE_KEY,
-      version: 2,
+      version: 3,
       // v1 chords carried a URL; v2 chords point at a shortcut. Re-link by URL, drop the unmatched.
       migrate: (persisted, version) => {
         const state = (persisted ?? {}) as Record<string, any>
@@ -196,6 +211,10 @@ export const useAppStore = create<AppState>()(
             const match = shortcuts.find((sc) => href(sc.url) === target)
             return match ? [{ id: c.id, sequence: c.sequence, shortcutId: match.id, enabled: c.enabled !== false }] : []
           })
+        }
+        // v3: weather/news became real widgets. If both were still at the old "off" defaults, turn them on.
+        if (version < 3 && state.widgets && state.widgets.weather === false && state.widgets.news === false) {
+          state.widgets = { ...state.widgets, weather: true, news: true }
         }
         return state as AppState
       },
