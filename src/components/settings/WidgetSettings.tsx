@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import { NEWS_CATEGORIES } from '@/lib/news'
+import { AI_PROVIDERS } from '@/lib/aiProviders'
 import { SEARCH_ENGINES } from '@/lib/searchEngines'
 import {
   useAppStore,
+  type AiProviderId,
   type ClockFormat,
   type NewsCategory,
   type SearchEngineId,
@@ -18,6 +20,7 @@ import { Switch } from '@/components/ui/switch'
 const WIDGET_LABELS: { key: WidgetKey; label: string; hint: string }[] = [
   { key: 'clock', label: 'Clock and greeting', hint: 'Time, date and a hello' },
   { key: 'search', label: 'Search bar', hint: 'Google, DuckDuckGo, Perplexity and more' },
+  { key: 'aiLauncher', label: 'AI prompt launcher', hint: 'Send a prompt to ChatGPT, Claude, Grok, Gemini or Perplexity' },
   { key: 'weather', label: 'Weather', hint: 'Current conditions and a 4-day forecast' },
   { key: 'news', label: 'News', hint: 'Headlines by category' },
   { key: 'quickApps', label: 'Quick apps', hint: 'Your shortcuts and folders' },
@@ -129,6 +132,18 @@ function Body() {
             {SEARCH_ENGINES.filter((e) => e.group === 'ai').map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
           </optgroup>
         </select>
+      </Section>
+
+      <Section title="AI prompt launcher">
+        <select
+          aria-label="Default AI"
+          className={selectClass}
+          value={settings.aiProvider}
+          onChange={(e) => updateSettings({ aiProvider: e.target.value as AiProviderId })}
+        >
+          {AI_PROVIDERS.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <p className="text-xs text-muted-foreground">Prompts open the AI's own site in a new tab. No account or API key needed here; you sign in on their site.</p>
       </Section>
 
       <Section title="Weather">

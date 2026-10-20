@@ -13,3 +13,19 @@ export function navigateTo(url: string) {
   }
   go()
 }
+
+/** Opens `url` in a new tab: chrome.tabs.create inside the extension, window.open elsewhere. */
+export function openInNewTab(url: string) {
+  const fallback = () => {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+  if (typeof chrome !== 'undefined' && chrome.tabs?.create) {
+    try {
+      chrome.tabs.create({ url }).catch(fallback)
+    } catch {
+      fallback()
+    }
+    return
+  }
+  fallback()
+}

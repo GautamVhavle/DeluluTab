@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 import { AnimatePresence, LayoutGroup, MotionConfig, motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useAppStore, type LayoutMode, type WidgetKey } from '@/store/useAppStore'
+import { AiLauncherWidget } from './widgets/AiLauncherWidget'
 import { ClockWidget } from './widgets/ClockWidget'
 import { NewsWidget } from './widgets/NewsWidget'
 import { QuickAppsWidget } from './widgets/QuickAppsWidget'
@@ -12,6 +13,7 @@ import type { WidgetProps } from './widgets/types'
 const WIDGETS: Record<WidgetKey, ComponentType<WidgetProps>> = {
   clock: ClockWidget,
   search: SearchBarWidget,
+  aiLauncher: AiLauncherWidget,
   weather: WeatherWidget,
   quickApps: QuickAppsWidget,
   news: NewsWidget,
@@ -37,10 +39,11 @@ const MODES: Record<LayoutMode, ModeConfig> = {
     wrapper: 'max-w-6xl p-6 sm:p-8',
     grid: 'grid grid-flow-dense grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4 lg:auto-rows-[11rem]',
     card: 'min-h-[9rem] rounded-2xl border bg-card/70 p-5 shadow-sm backdrop-blur',
-    order: ['clock', 'search', 'weather', 'quickApps', 'news'],
+    order: ['clock', 'search', 'aiLauncher', 'weather', 'quickApps', 'news'],
     spans: {
-      clock: 'sm:col-span-2 lg:row-span-2',
+      clock: 'sm:col-span-2',
       search: 'sm:col-span-2',
+      aiLauncher: 'sm:col-span-2',
       weather: 'sm:col-span-2',
       quickApps: 'sm:col-span-2 lg:row-span-2',
       news: 'sm:col-span-2 lg:row-span-2',
@@ -50,11 +53,12 @@ const MODES: Record<LayoutMode, ModeConfig> = {
     wrapper: 'max-w-3xl p-3',
     grid: 'grid grid-cols-2 gap-2 sm:grid-cols-4',
     card: 'rounded-xl border bg-card/70 p-3 backdrop-blur',
-    order: ['clock', 'weather', 'search', 'news', 'quickApps'],
+    order: ['clock', 'weather', 'search', 'aiLauncher', 'news', 'quickApps'],
     spans: {
       clock: 'col-span-2',
       weather: 'col-span-2',
       search: 'col-span-2 sm:col-span-4',
+      aiLauncher: 'col-span-2 sm:col-span-4',
       news: 'col-span-2 sm:col-span-4',
       quickApps: 'col-span-2 sm:col-span-4',
     },

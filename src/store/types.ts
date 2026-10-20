@@ -3,6 +3,7 @@ export type LayoutMode = 'compact' | 'detailed' | 'focus'
 export type ClockFormat = '12h' | '24h'
 export type TemperatureUnit = 'c' | 'f'
 export type SearchEngineId = 'google' | 'duckduckgo' | 'bing' | 'ecosia' | 'perplexity' | 'chatgpt' | 'claude'
+export type AiProviderId = 'chatgpt' | 'claude' | 'grok' | 'gemini' | 'perplexity'
 export type NewsCategory = 'tech' | 'world' | 'business' | 'ai'
 
 export interface WeatherLocation {
@@ -39,6 +40,8 @@ export interface Settings {
   /** null = detect automatically with the browser's geolocation. */
   weatherLocation: WeatherLocation | null
   newsCategory: NewsCategory
+  /** Preferred AI for the prompt launcher; remembered from the last one used. */
+  aiProvider: AiProviderId
   chordTrigger: ChordTrigger
   /** Max pause between chord keystrokes before the chord window closes. */
   chordWindowMs: number
@@ -71,5 +74,5 @@ export interface Chord {
   enabled: boolean
 }
 
-export type WidgetKey = 'clock' | 'weather' | 'search' | 'news' | 'quickApps'
+export type WidgetKey = 'clock' | 'weather' | 'search' | 'aiLauncher' | 'news' | 'quickApps'
 export type WidgetsState = Record<WidgetKey, boolean>

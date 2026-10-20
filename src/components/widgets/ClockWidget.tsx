@@ -116,7 +116,7 @@ export function ClockWidget({ mode }: WidgetProps) {
   return (
     <div className="group/clock relative flex h-full flex-col justify-center">
       <p className="mb-2 text-sm font-medium text-muted-foreground">{greeting}</p>
-      <Time className="text-6xl sm:text-7xl" small="text-xl" />
+      <Time className="text-5xl sm:text-6xl" small="text-lg" />
       <p className="mt-2 text-sm text-muted-foreground">{date}</p>
       <FormatToggles />
     </div>

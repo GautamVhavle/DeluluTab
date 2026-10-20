@@ -58,6 +58,7 @@ const defaultSettings: Settings = {
   temperatureUnit: 'c',
   weatherLocation: null,
   newsCategory: 'tech',
+  aiProvider: 'chatgpt',
   chordTrigger: 'Backquote',
   chordWindowMs: 1000,
 }
@@ -82,6 +83,7 @@ const defaultWidgets: WidgetsState = {
   clock: true,
   weather: true,
   search: true,
+  aiLauncher: true,
   news: true,
   quickApps: true,
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown, Search, Sparkles } from 'lucide-react'
 import { engineById, SEARCH_ENGINES } from '@/lib/searchEngines'
 import { navigateTo } from '@/lib/navigate'
+import { isMac } from '@/lib/platform'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
 import {
@@ -18,8 +19,6 @@ const isEditable = (el: EventTarget | null) => {
   const t = el as HTMLElement | null
   return !!t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))
 }
-
-const isMac = () => /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent)
 
 /** `/` and Cmd/Ctrl+K focus the search bar from anywhere on the page. */
 function useFocusShortcuts(input: React.RefObject<HTMLInputElement | null>) {
