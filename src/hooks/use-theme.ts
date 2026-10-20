@@ -1,35 +1,19 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useAppStore } from '@/store/useAppStore'
 
-export type Theme = 'dark' | 'light'
-
-const STORAGE_KEY = 'delulutab:theme'
-
-function readStoredTheme(): Theme {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored === 'dark' || stored === 'light') return stored
-  } catch {
-    // Storage can be unavailable (e.g. blocked site data); fall through to the default.
-  }
-  return 'dark'
-}
-
-/** Class-based theme switching: toggles `dark` on <html> and remembers the choice. */
-export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(readStoredTheme)
+/** Applies settings.theme to <html>; 'dynamic' follows the OS color scheme. */
+export function useApplyTheme() {
+  const theme = useAppStore((s) => s.settings.theme)
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
-    try {
-      localStorage.setItem(STORAGE_KEY, theme)
-    } catch {
-      // Non-fatal: the theme still applies for this session.
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const apply = () => {
+      const dark = theme === 'dark' || (theme === 'dynamic' && mq.matches)
+      document.documentElement.classList.toggle('dark', dark)
     }
+    apply()
+    if (theme !== 'dynamic') return
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
   }, [theme])
-
-  const toggleTheme = useCallback(() => {
-    setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
-  }, [])
-
-  return { theme, setTheme, toggleTheme }
 }

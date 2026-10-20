@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Moon, Search, Sparkles, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useTheme } from '@/hooks/use-theme'
+import { StateDebugPanel } from '@/components/StateDebugPanel'
+import { useApplyTheme } from '@/hooks/use-theme'
+import { useAppStore } from '@/store/useAppStore'
 
 function useClock() {
   const [now, setNow] = useState(() => new Date())
@@ -20,7 +22,11 @@ function greetingFor(hour: number) {
 }
 
 export default function App() {
-  const { theme, toggleTheme } = useTheme()
+  useApplyTheme()
+  const theme = useAppStore((s) => s.settings.theme)
+  const widgets = useAppStore((s) => s.widgets)
+  const updateSettings = useAppStore((s) => s.updateSettings)
+  const isDark = theme === 'dark' || (theme === 'dynamic' && window.matchMedia('(prefers-color-scheme: dark)').matches)
   const now = useClock()
 
   const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -36,23 +42,26 @@ export default function App() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          onClick={() => updateSettings({ theme: isDark ? 'light' : 'dark' })}
+          aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
         >
-          {theme === 'dark' ? <Sun /> : <Moon />}
+          {isDark ? <Sun /> : <Moon />}
         </Button>
       </header>
 
       <main className="flex flex-1 flex-col items-center justify-center gap-8 px-6 pb-24">
+        {widgets.clock && (
         <div className="text-center">
           <p className="text-7xl font-light tabular-nums tracking-tight sm:text-8xl">{time}</p>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{date}</p>
         </div>
+        )}
 
         <h1 className="text-2xl font-medium text-slate-700 dark:text-slate-300">
           {greetingFor(now.getHours())}
         </h1>
 
+        {widgets.search && (
         <form
           className="w-full max-w-xl"
           onSubmit={(e) => {
@@ -72,7 +81,10 @@ export default function App() {
             />
           </label>
         </form>
+        )}
       </main>
+
+      <StateDebugPanel />
     </div>
   )
 }
