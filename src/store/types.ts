@@ -14,7 +14,7 @@ export interface Shortcut {
   id: string
   title: string
   url: string
-  /** Lucide icon name or an image URL. */
+  /** '' = auto-fetched favicon, otherwise a Lucide icon name or an image URL. */
   icon: string
   /** Id of the containing Folder, or null for top level. */
   folderId: string | null
@@ -24,6 +24,8 @@ export interface Folder {
   id: string
   title: string
   icon: string
+  /** Absent/false means expanded. */
+  collapsed?: boolean
 }
 
 /** GTA-style keyboard chord: type `sequence` (e.g. "gh") to trigger `action`. */

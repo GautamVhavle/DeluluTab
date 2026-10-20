@@ -16,6 +16,24 @@ const STORAGE_KEY = 'delulutab:store'
 
 const newId = () => crypto.randomUUID()
 
+/** Swaps item `id` with its neighbour among items sharing the same group; no-op at either end. */
+function moveWithinGroup<T extends { id: string }>(
+  items: T[],
+  id: string,
+  direction: -1 | 1,
+  sameGroup: (a: T, b: T) => boolean,
+): T[] {
+  const index = items.findIndex((x) => x.id === id)
+  if (index === -1) return items
+  const step = direction
+  let j = index + step
+  while (j >= 0 && j < items.length && !sameGroup(items[index], items[j])) j += step
+  if (j < 0 || j >= items.length) return items
+  const next = items.slice()
+  ;[next[index], next[j]] = [next[j], next[index]]
+  return next
+}
+
 const defaultSettings: Settings = {
   theme: 'dark',
   layoutMode: 'detailed',
@@ -56,10 +74,14 @@ interface AppState {
   addShortcut: (shortcut: Omit<Shortcut, 'id'>) => string
   updateShortcut: (id: string, patch: Partial<Omit<Shortcut, 'id'>>) => void
   removeShortcut: (id: string) => void
+  /** Moves a shortcut one slot earlier (-1) or later (1) within its folder / top level. */
+  reorderShortcut: (id: string, direction: -1 | 1) => void
   addFolder: (folder: Omit<Folder, 'id'>) => string
   updateFolder: (id: string, patch: Partial<Omit<Folder, 'id'>>) => void
   /** Removes the folder; its shortcuts move to the top level. */
   removeFolder: (id: string) => void
+  reorderFolder: (id: string, direction: -1 | 1) => void
+  toggleFolderCollapsed: (id: string) => void
 
   addChord: (chord: Omit<Chord, 'id'>) => string
   updateChord: (id: string, patch: Partial<Omit<Chord, 'id'>>) => void
@@ -90,6 +112,10 @@ export const useAppStore = create<AppState>()(
       updateShortcut: (id, patch) =>
         set((s) => ({ shortcuts: s.shortcuts.map((x) => (x.id === id ? { ...x, ...patch } : x)) })),
       removeShortcut: (id) => set((s) => ({ shortcuts: s.shortcuts.filter((x) => x.id !== id) })),
+      reorderShortcut: (id, direction) =>
+        set((s) => ({
+          shortcuts: moveWithinGroup(s.shortcuts, id, direction, (a, b) => a.folderId === b.folderId),
+        })),
 
       addFolder: (folder) => {
         const id = newId()
@@ -98,6 +124,10 @@ export const useAppStore = create<AppState>()(
       },
       updateFolder: (id, patch) =>
         set((s) => ({ folders: s.folders.map((x) => (x.id === id ? { ...x, ...patch } : x)) })),
+      reorderFolder: (id, direction) =>
+        set((s) => ({ folders: moveWithinGroup(s.folders, id, direction, () => true) })),
+      toggleFolderCollapsed: (id) =>
+        set((s) => ({ folders: s.folders.map((f) => (f.id === id ? { ...f, collapsed: !f.collapsed } : f)) })),
       removeFolder: (id) =>
         set((s) => ({
           folders: s.folders.filter((f) => f.id !== id),

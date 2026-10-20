@@ -32,7 +32,7 @@ interface ModeConfig {
 
 // Class strings are written out in full so Tailwind can see them.
 const MODES: Record<LayoutMode, ModeConfig> = {
-  // Bento grid: 4 columns × 3 rows on large screens with every widget enabled.
+  // Bento grid: 4 columns × 4 rows on large screens with every widget enabled.
   detailed: {
     wrapper: 'max-w-6xl p-6 sm:p-8',
     grid: 'grid grid-flow-dense grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4 lg:auto-rows-[11rem]',
@@ -42,8 +42,8 @@ const MODES: Record<LayoutMode, ModeConfig> = {
       clock: 'sm:col-span-2 lg:row-span-2',
       search: 'sm:col-span-2',
       weather: 'sm:col-span-2',
-      quickApps: 'sm:col-span-2',
-      news: 'sm:col-span-2',
+      quickApps: 'sm:col-span-2 lg:row-span-2',
+      news: 'sm:col-span-2 lg:row-span-2',
     },
   },
   compact: {
