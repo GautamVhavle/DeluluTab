@@ -27,6 +27,7 @@ function manifestVersion(): Plugin {
 // so `dist/` can be loaded directly via chrome://extensions → "Load unpacked" or zipped for the Web Store.
 export default defineConfig(({ mode }) => ({
   plugins: [react(), manifestVersion()],
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   // Relative asset URLs so the page resolves under chrome-extension://<id>/
   base: './',
   resolve: {

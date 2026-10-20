@@ -1,9 +1,9 @@
-import { LayoutGrid, Focus, Rows3, type LucideIcon } from 'lucide-react'
+import { LayoutGrid, Focus, Rows3, type IconType } from '@/lib/icons'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useAppStore, type LayoutMode } from '@/store/useAppStore'
 
-const MODES: { value: LayoutMode; label: string; Icon: LucideIcon }[] = [
+const MODES: { value: LayoutMode; label: string; Icon: IconType }[] = [
   { value: 'compact', label: 'Compact', Icon: Rows3 },
   { value: 'detailed', label: 'Detailed', Icon: LayoutGrid },
   { value: 'focus', label: 'Focus', Icon: Focus },

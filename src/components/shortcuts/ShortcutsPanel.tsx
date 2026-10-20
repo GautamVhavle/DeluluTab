@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { FolderPlus, Plus } from 'lucide-react'
+import { FolderPlus, Plus } from '@/lib/icons'
 import { useAppStore, type Folder, type Shortcut } from '@/store/useAppStore'
 import {
   DropdownMenu,

@@ -1,5 +1,5 @@
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
-import { Check, X, Zap } from 'lucide-react'
+import { Check, X, Zap } from '@/lib/icons'
 import { resolveChords, type ChordEngineState } from '@/lib/chords'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'

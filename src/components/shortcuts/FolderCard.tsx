@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowDown, ArrowUp, ChevronRight, Folder as FolderIcon, FolderOpen, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronRight, Folder as FolderIcon, FolderOpen, MoreHorizontal, Pencil, Plus, Trash2 } from '@/lib/icons'
 import { useAppStore, type Folder, type Shortcut } from '@/store/useAppStore'
 import {
   DropdownMenu,

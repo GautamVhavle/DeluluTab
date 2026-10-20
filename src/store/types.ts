@@ -4,7 +4,8 @@ export type ClockFormat = '12h' | '24h'
 export type TemperatureUnit = 'c' | 'f'
 export type SearchEngineId = 'google' | 'duckduckgo' | 'bing' | 'ecosia' | 'perplexity' | 'chatgpt' | 'claude'
 export type AiProviderId = 'chatgpt' | 'claude' | 'grok' | 'gemini' | 'perplexity'
-export type NewsCategory = 'tech' | 'world' | 'business' | 'ai'
+export type NewsCategory = 'tech' | 'ai' | 'science' | 'world' | 'business'
+export type TabTitleMode = 'name' | 'time' | 'custom'
 
 export interface WeatherLocation {
   name: string
@@ -15,8 +16,8 @@ export interface WeatherLocation {
 export type BackgroundSource = 'unsplash' | 'gradient' | 'custom'
 export type BackgroundRotation = 'off' | 'newtab' | '1m' | '5m' | '15m' | '1h'
 
-/** Physical key (KeyboardEvent.code) that starts a chord. */
-export type ChordTrigger = 'Backquote' | 'Space' | 'Semicolon'
+/** Physical key (a KeyboardEvent.code such as 'Backquote') that starts a chord. See lib/chords for the allowed keys. */
+export type ChordTrigger = string
 
 export interface Settings {
   theme: Theme
@@ -42,6 +43,14 @@ export interface Settings {
   newsCategory: NewsCategory
   /** Preferred AI for the prompt launcher; remembered from the last one used. */
   aiProvider: AiProviderId
+  /** What the browser tab says. */
+  tabTitleMode: TabTitleMode
+  tabTitleCustom: string
+  showTabIcon: boolean
+  /** Page text size in percent (85-130). */
+  fontScale: number
+  /** Accent color as #rrggbb, or null for the built-in violet. */
+  accent: string | null
   /** Last tab open in the mini-tools drawer. */
   quickAppsTab: QuickAppsTab
   chordTrigger: ChordTrigger

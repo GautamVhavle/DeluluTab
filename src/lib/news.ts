@@ -9,9 +9,10 @@ export interface NewsCategoryConfig {
 
 export const NEWS_CATEGORIES: NewsCategoryConfig[] = [
   { id: 'tech', label: 'Tech', source: 'TechCrunch', feed: 'https://techcrunch.com/feed/' },
+  { id: 'ai', label: 'AI', source: 'MIT Technology Review', feed: 'https://www.technologyreview.com/topic/artificial-intelligence/feed/' },
+  { id: 'science', label: 'Science', source: 'ScienceDaily', feed: 'https://www.sciencedaily.com/rss/top/science.xml' },
   { id: 'world', label: 'World', source: 'BBC News', feed: 'https://feeds.bbci.co.uk/news/world/rss.xml' },
   { id: 'business', label: 'Business', source: 'BBC News', feed: 'https://feeds.bbci.co.uk/news/business/rss.xml' },
-  { id: 'ai', label: 'AI', source: 'MIT Technology Review', feed: 'https://www.technologyreview.com/topic/artificial-intelligence/feed/' },
 ]
 
 export const categoryById = (id: NewsCategory) => NEWS_CATEGORIES.find((c) => c.id === id) ?? NEWS_CATEGORIES[0]

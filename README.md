@@ -5,12 +5,13 @@ An AI-focused Chrome extension that replaces the new tab page.
 - **Search bar** with Google, DuckDuckGo, Bing, Ecosia, Perplexity, ChatGPT and Claude (`/` or `Ctrl/⌘+K` to focus)
 - **AI prompt launcher**: type a prompt, press Enter, and it opens in ChatGPT, Claude, Grok, Gemini or Perplexity in a new tab. No API keys.
 - **Clock and greeting**, **weather** (Open-Meteo, no key), **news** by category
-- **Shortcuts and folders**, plus **keyboard chords**: press `` ` `` then type `gh` to jump to GitHub
+- **Shortcuts and folders**, plus **keyboard chords**: press `` ` `` then type `gh` to jump to GitHub (the trigger key is yours to change)
 - **Mini tools drawer**: notes (Markdown), tasks, calculator and unit converter
 - **Backgrounds**: gradient presets, Unsplash photos, or your own images, with a slideshow and an overlay that keeps text readable
-- Compact, Detailed and Focus layouts; light, dark and system themes
+- Compact, Detailed and Focus layouts; light, dark and system themes; text size and accent color
+- **Settings** (gear icon): tab title and icon, appearance, widgets, chords, and backup/restore of your whole configuration as a JSON file
 
-**Stack:** Vite · React 18 + TypeScript · Tailwind CSS 3 · Radix/shadcn-style UI · Zustand · Framer Motion · GSAP · Manifest V3
+**Stack:** Vite · React 18 + TypeScript · Tailwind CSS 3 · Radix/shadcn-style UI · react-icons (FontAwesome 6 + Material) · Zustand · Framer Motion · GSAP · Manifest V3
 
 ## Develop
 
@@ -54,12 +55,12 @@ See [PRIVACY.md](PRIVACY.md) for what leaves your browser, and [RELEASING.md](RE
 
 ```
 index.html                 new tab entry (chrome_url_overrides.newtab)
-public/                    manifest.json, icons, theme-boot.js (copied into dist/ as-is)
+public/                    manifest.json, icons, logo.svg (tab icon), theme-boot.js (copied into dist/ as-is)
 scripts/package.mjs        verifies dist/ and builds the release zip
 src/
   App.tsx                  shell: header, dashboard, settings panels
-  components/              widgets, shortcuts, chords, background, quickapps, ui
+  components/              widgets, shortcuts, chords, settings, background, quickapps, common, ui
   hooks/                   theme, hydration, chords, cached fetch, geolocation
-  lib/                     calc parser, units, weather, news, AI providers, ...
-  store/                   zustand store + chrome.storage adapters
+  lib/                     icons.ts (all UI icons), backup, appearance, tab title, calc, units, weather, news, ...
+  store/                   defaults.ts (everything DeluluTab starts with), zustand store, chrome.storage adapters
 ```

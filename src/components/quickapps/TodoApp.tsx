@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, Plus, X } from 'lucide-react'
+import { Check, Plus, X } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { MAX_TODO_LENGTH, useAppStore } from '@/store/useAppStore'
 import { Button } from '@/components/ui/button'

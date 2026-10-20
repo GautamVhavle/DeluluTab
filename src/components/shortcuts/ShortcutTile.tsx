@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, MoreHorizontal, Pencil, Trash2 } from '@/lib/icons'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useAppStore, type Shortcut } from '@/store/useAppStore'

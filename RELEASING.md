@@ -25,9 +25,11 @@ Unzip the release, open `chrome://extensions`, enable Developer mode, **Load unp
 - [ ] Search runs from the bar; `/` and `Ctrl/⌘+K` focus it
 - [ ] AI launcher: Enter opens the chosen AI in a **new** tab with your prompt
 - [ ] Weather asks for location (or search a city); the news card fills in
-- [ ] Add a shortcut, make a folder, set a chord (`` ` `` then the code)
+- [ ] Add a shortcut, make a folder, set a chord (`` ` `` then the code); try the default `gh`, `yt`, `gpt`
+- [ ] Settings (gear): change the tab title to Live time, switch the accent color, move the text size, rebind the chord trigger key
+- [ ] Settings > Backup: export, restore defaults, then import the file; everything comes back
 - [ ] Mini tools: write a note, close and reopen the tab; it is still there
-- [ ] Background panel: pick a gradient, shuffle, switch to light theme (no dark flash on reload)
+- [ ] Background panel (picture icon): pick a gradient, shuffle; switch to light theme (no dark flash on reload)
 - [ ] Reload the extension from `chrome://extensions`; settings persist
 
 ## 4. Tag and push

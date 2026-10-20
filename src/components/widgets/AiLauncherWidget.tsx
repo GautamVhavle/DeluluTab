@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowUp } from 'lucide-react'
+import { ArrowUp } from '@/lib/icons'
 import { AI_PROVIDERS, aiProviderById, type AiProvider } from '@/lib/aiProviders'
 import { openInNewTab } from '@/lib/navigate'
 import { isMac } from '@/lib/platform'

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { createSplitStorage, splitKeys, subscribeToExternalChanges } from './chromeStorage'
+import { createDefaultConfig } from './defaults'
 import type {
   Chord,
   Folder,
@@ -36,61 +37,6 @@ function moveWithinGroup<T extends { id: string }>(
   const next = items.slice()
   ;[next[index], next[j]] = [next[j], next[index]]
   return next
-}
-
-const prefers12h = () => {
-  try {
-    return !!new Intl.DateTimeFormat(undefined, { hour: 'numeric' }).resolvedOptions().hour12
-  } catch {
-    return false
-  }
-}
-
-const defaultSettings: Settings = {
-  theme: 'dark',
-  layoutMode: 'detailed',
-  backgroundSource: 'gradient',
-  gradientPreset: 'blue-hour',
-  unsplashQuery: 'nature',
-  backgroundRotation: 'off',
-  backgroundDim: 0,
-  backgroundBlur: 0,
-  clockFormat: prefers12h() ? '12h' : '24h',
-  showSeconds: false,
-  userName: '',
-  searchEngine: 'google',
-  temperatureUnit: 'c',
-  weatherLocation: null,
-  newsCategory: 'tech',
-  aiProvider: 'chatgpt',
-  quickAppsTab: 'notes',
-  chordTrigger: 'Backquote',
-  chordWindowMs: 1000,
-}
-
-const defaultFolders: Folder[] = [{ id: 'folder-dev', title: 'Dev', icon: 'folder-code' }]
-
-const defaultShortcuts: Shortcut[] = [
-  { id: 'sc-github', title: 'GitHub', url: 'https://github.com', icon: 'github', folderId: 'folder-dev' },
-  { id: 'sc-claude', title: 'Claude', url: 'https://claude.ai', icon: 'sparkles', folderId: null },
-  { id: 'sc-youtube', title: 'YouTube', url: 'https://youtube.com', icon: 'youtube', folderId: null },
-  { id: 'sc-gmail', title: 'Gmail', url: 'https://mail.google.com', icon: 'mail', folderId: null },
-]
-
-const defaultChords: Chord[] = [
-  { id: 'chord-gh', sequence: 'gh', shortcutId: 'sc-github', enabled: true },
-  { id: 'chord-cl', sequence: 'cl', shortcutId: 'sc-claude', enabled: true },
-  { id: 'chord-yt', sequence: 'yt', shortcutId: 'sc-youtube', enabled: true },
-  { id: 'chord-gm', sequence: 'gm', shortcutId: 'sc-gmail', enabled: true },
-]
-
-const defaultWidgets: WidgetsState = {
-  clock: true,
-  weather: true,
-  search: true,
-  aiLauncher: true,
-  news: true,
-  quickApps: true,
 }
 
 interface AppState {
@@ -132,18 +78,26 @@ interface AppState {
   removeTodo: (id: string) => void
   clearCompletedTodos: () => void
 
-  /** Resets settings, shortcuts, chords and widgets. Never touches notes or todos. */
-  resetAll: () => void
+  /** Back to the built-in configuration (settings, shortcuts, chords, widgets). Notes and tasks stay unless asked. */
+  restoreDefaults: (options?: { clearNotes?: boolean }) => void
+  /** Replaces the configuration with an already-validated backup (see lib/backup). */
+  importConfig: (config: ImportedConfig) => void
+}
+
+export interface ImportedConfig {
+  settings: Settings
+  folders: Folder[]
+  shortcuts: Shortcut[]
+  chords: Chord[]
+  widgets: WidgetsState
+  notes?: string
+  todos?: Todo[]
 }
 
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
-      settings: defaultSettings,
-      folders: defaultFolders,
-      shortcuts: defaultShortcuts,
-      chords: defaultChords,
-      widgets: defaultWidgets,
+      ...createDefaultConfig(),
       notes: '',
       todos: [],
 
@@ -214,14 +168,24 @@ export const useAppStore = create<AppState>()(
       removeTodo: (id) => set((s) => ({ todos: s.todos.filter((t) => t.id !== id) })),
       clearCompletedTodos: () => set((s) => ({ todos: s.todos.filter((t) => !t.done) })),
 
-      resetAll: () =>
-        set({
-          settings: defaultSettings,
-          folders: defaultFolders,
-          shortcuts: defaultShortcuts,
-          chords: defaultChords,
-          widgets: defaultWidgets,
-        }),
+      restoreDefaults: ({ clearNotes = false } = {}) =>
+        set((s) => ({
+          ...createDefaultConfig(),
+          notes: clearNotes ? '' : s.notes,
+          todos: clearNotes ? [] : s.todos,
+        })),
+
+      importConfig: (config) =>
+        set((s) => ({
+          settings: config.settings,
+          folders: config.folders,
+          shortcuts: config.shortcuts,
+          chords: config.chords,
+          widgets: config.widgets,
+          // A backup made without notes must not wipe the notes already on this device.
+          notes: config.notes ?? s.notes,
+          todos: config.todos ?? s.todos,
+        })),
     }),
     {
       name: STORAGE_KEY,

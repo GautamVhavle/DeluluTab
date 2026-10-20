@@ -1,42 +1,73 @@
 import { useState } from 'react'
+import type { IconType } from 'react-icons'
 import {
-  Bookmark,
-  BookOpen,
-  Briefcase,
-  Code,
-  Gamepad2,
-  Github,
-  Globe,
-  Heart,
-  Mail,
-  MessageSquare,
-  Music,
-  ShoppingBag,
-  Sparkles,
-  Star,
-  Video,
-  Youtube,
-  type LucideIcon,
-} from 'lucide-react'
+  FaAmazon,
+  FaBagShopping,
+  FaBook,
+  FaBookmark,
+  FaBrain,
+  FaBriefcase,
+  FaCode,
+  FaCompass,
+  FaComment,
+  FaDiscord,
+  FaEnvelope,
+  FaGamepad,
+  FaGithub,
+  FaGlobe,
+  FaGoogle,
+  FaHeart,
+  FaLinkedin,
+  FaMusic,
+  FaNewspaper,
+  FaReddit,
+  FaRobot,
+  FaSpotify,
+  FaStackOverflow,
+  FaStar,
+  FaTwitch,
+  FaVideo,
+  FaWandMagicSparkles,
+  FaWikipediaW,
+  FaXTwitter,
+  FaYoutube,
+} from 'react-icons/fa6'
+import { MdStars } from 'react-icons/md'
 import { hostnameOf } from '@/lib/url'
 
-export const ICONS: Record<string, LucideIcon> = {
-  globe: Globe,
-  sparkles: Sparkles,
-  github: Github,
-  youtube: Youtube,
-  mail: Mail,
-  bookmark: Bookmark,
-  code: Code,
-  star: Star,
-  heart: Heart,
-  music: Music,
-  video: Video,
-  gamepad: Gamepad2,
-  shopping: ShoppingBag,
-  book: BookOpen,
-  work: Briefcase,
-  chat: MessageSquare,
+/** Icons a shortcut can use. The keys are saved in settings, so never rename one. */
+export const ICONS: Record<string, IconType> = {
+  globe: FaGlobe,
+  sparkles: FaWandMagicSparkles,
+  github: FaGithub,
+  youtube: FaYoutube,
+  reddit: FaReddit,
+  x: FaXTwitter,
+  chatgpt: FaRobot,
+  claude: FaBrain,
+  gemini: MdStars,
+  perplexity: FaCompass,
+  google: FaGoogle,
+  mail: FaEnvelope,
+  linkedin: FaLinkedin,
+  discord: FaDiscord,
+  twitch: FaTwitch,
+  spotify: FaSpotify,
+  stackoverflow: FaStackOverflow,
+  amazon: FaAmazon,
+  wikipedia: FaWikipediaW,
+  news: FaNewspaper,
+  bookmark: FaBookmark,
+  code: FaCode,
+  star: FaStar,
+  heart: FaHeart,
+  music: FaMusic,
+  video: FaVideo,
+  gamepad: FaGamepad,
+  shopping: FaBagShopping,
+  book: FaBook,
+  work: FaBriefcase,
+  chat: FaComment,
 }
 
 export const ICON_NAMES = Object.keys(ICONS)
@@ -48,7 +79,7 @@ export const faviconFor = (url: string) =>
 
 function Img({ src, className }: { src: string; className?: string }) {
   const [failed, setFailed] = useState(false)
-  if (failed) return <Globe className={className} />
+  if (failed) return <FaGlobe className={className} />
   return <img src={src} alt="" className={className} onError={() => setFailed(true)} draggable={false} />
 }
 
@@ -63,5 +94,5 @@ export function ShortcutIcon({ icon, url, className }: { icon: string; url: stri
   }
   const src = isImageUrl(icon) ? icon : icon === '' ? faviconFor(url) : null
   // key resets the failed state when the source changes (e.g. while editing)
-  return src ? <Img key={src} src={src} className={className} /> : <Globe className={className} />
+  return src ? <Img key={src} src={src} className={className} /> : <FaGlobe className={className} />
 }

@@ -77,22 +77,24 @@ export const splitKeys = (name: string) => [name, `${name}:local`, `${name}:rest
  * Persists a zustand store across two areas: the fields named in `localKeys` (big or private data such as
  * notes) go to chrome.storage.local, everything else to chrome.storage.sync.
  *
- * - Sync writes are skipped when nothing in the sync part changed, so typing in notes never touches
- *   sync's write-rate limit (about 120 a minute).
+ * - Sync writes are skipped when nothing in the sync part changed, and debounced when it did, so neither typing
+ *   in notes nor dragging a slider can hit sync's write-rate limit (about 120 a minute).
  * - Local writes are debounced and flushed when the page is hidden, so every keystroke is safe without
  *   rewriting the whole blob on each one.
  * - If the sync part ever exceeds sync's 8KB item limit it is kept in local storage instead, and read back from there.
  */
-export function createSplitStorage(localKeys: string[], debounceMs = 250): StateStorage {
+export function createSplitStorage(localKeys: string[], debounceMs = 250, syncDebounceMs = 600): StateStorage {
   let lastSync: string | null = null
-  let pending: { name: string; value: string } | null = null
-  let timer: ReturnType<typeof setTimeout> | undefined
+  let pendingLocal: { name: string; value: string } | null = null
+  let pendingSync: { name: string; value: string } | null = null
+  let localTimer: ReturnType<typeof setTimeout> | undefined
+  let syncTimer: ReturnType<typeof setTimeout> | undefined
 
   const writeLocal = async () => {
-    clearTimeout(timer)
-    if (!pending) return
-    const { name, value } = pending
-    pending = null
+    clearTimeout(localTimer)
+    if (!pendingLocal) return
+    const { name, value } = pendingLocal
+    pendingLocal = null
     if (!hasChromeStorage()) return
     trackWrite(value)
     try {
@@ -103,9 +105,34 @@ export function createSplitStorage(localKeys: string[], debounceMs = 250): State
     }
   }
 
+  const writeSync = async () => {
+    clearTimeout(syncTimer)
+    if (!pendingSync) return
+    const { name, value } = pendingSync
+    pendingSync = null
+    if (!hasChromeStorage() || value === lastSync) return
+    lastSync = value
+    trackWrite(value)
+    try {
+      await chrome.storage.sync.set({ [name]: value })
+      await chrome.storage.local.remove(`${name}:rest`)
+    } catch (err) {
+      console.warn('[DeluluTab] sync storage write failed, keeping settings locally instead', err)
+      trackWrite(value)
+      try {
+        await chrome.storage.local.set({ [`${name}:rest`]: value })
+      } catch (fallbackErr) {
+        // Both areas refused (e.g. the extension was reloaded under an open tab). Nothing more to try.
+        console.warn('[DeluluTab] settings could not be saved', fallbackErr)
+      }
+    }
+  }
+
+  const flush = () => Promise.all([writeLocal(), writeSync()])
+
   if (typeof window !== 'undefined') {
-    window.addEventListener('pagehide', () => void writeLocal())
-    document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && void writeLocal())
+    window.addEventListener('pagehide', () => void flush())
+    document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && void flush())
   }
 
   const split = (value: string) => {
@@ -132,36 +159,33 @@ export function createSplitStorage(localKeys: string[], debounceMs = 250): State
       return JSON.stringify({ state: { ...base.state, ...extra }, version: base.version })
     },
 
+    // Writes are trailing-debounced: a slider drag or typing burst becomes one save, well inside sync's
+    // write-rate limit (about 120 a minute). Anything pending is flushed when the page is hidden or closed.
     setItem: async (name, value) => {
       if (!hasChromeStorage()) return localStorage.setItem(name, value)
       const parts = split(value)
 
-      pending = { name, value: parts.local }
-      clearTimeout(timer)
-      timer = setTimeout(() => void writeLocal(), debounceMs)
+      pendingLocal = { name, value: parts.local }
+      clearTimeout(localTimer)
+      localTimer = setTimeout(() => void writeLocal(), debounceMs)
 
-      if (parts.rest === lastSync) return
-      lastSync = parts.rest
-      trackWrite(parts.rest)
-      try {
-        await chrome.storage.sync.set({ [name]: parts.rest })
-        await chrome.storage.local.remove(`${name}:rest`)
-      } catch (err) {
-        console.warn('[DeluluTab] sync storage write failed, keeping settings locally instead', err)
-        trackWrite(parts.rest)
-        try {
-          await chrome.storage.local.set({ [`${name}:rest`]: parts.rest })
-        } catch (fallbackErr) {
-          // Both areas refused (e.g. the extension was reloaded under an open tab). Nothing more to try.
-          console.warn('[DeluluTab] settings could not be saved', fallbackErr)
-        }
+      if (parts.rest !== lastSync) {
+        pendingSync = { name, value: parts.rest }
+        clearTimeout(syncTimer)
+        syncTimer = setTimeout(() => void writeSync(), syncDebounceMs)
+      } else {
+        pendingSync = null
+        clearTimeout(syncTimer)
       }
     },
 
     removeItem: async (name) => {
       if (!hasChromeStorage()) return localStorage.removeItem(name)
       lastSync = null
-      pending = null
+      pendingLocal = null
+      pendingSync = null
+      clearTimeout(localTimer)
+      clearTimeout(syncTimer)
       await chrome.storage.sync.remove(name)
       await chrome.storage.local.remove([`${name}:local`, `${name}:rest`])
     },

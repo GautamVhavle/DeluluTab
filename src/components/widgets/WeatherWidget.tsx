@@ -15,8 +15,8 @@ import {
   Search,
   Sun,
   Wind,
-  type LucideIcon,
-} from 'lucide-react'
+  type IconType,
+} from '@/lib/icons'
 import { useCachedResource } from '@/hooks/useCachedResource'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import {
@@ -37,7 +37,7 @@ import type { WidgetProps } from './types'
 
 const TTL_MS = 15 * 60 * 1000
 
-const ICONS: Record<WeatherKind, LucideIcon> = {
+const ICONS: Record<WeatherKind, IconType> = {
   clear: Sun,
   partly: CloudSun,
   cloudy: Cloud,

@@ -1,0 +1,77 @@
+/**
+ * The one place UI icons are chosen. FontAwesome 6 (`fa6`) is the default family; Material Design (`md`)
+ * fills the gaps where it has the better glyph. Names stay short and generic so components read the same
+ * whichever family an icon comes from. Brand marks (AI providers, search engines, shortcut icons) live in
+ * their own registries: lib/aiProviders.ts, lib/searchEngines.ts, components/shortcuts/ShortcutIcon.tsx.
+ */
+export type { IconType } from 'react-icons'
+
+export {
+  FaArrowDown as ArrowDown,
+  FaArrowLeft as ArrowLeft,
+  FaArrowRight as ArrowRight,
+  FaArrowUp as ArrowUp,
+  FaArrowRightArrowLeft as ArrowLeftRight,
+  FaCalculator as Calculator,
+  FaCheck as Check,
+  FaListCheck as CheckSquare,
+  FaChevronDown as ChevronDown,
+  FaChevronRight as ChevronRight,
+  FaRegCopy as Copy,
+  FaDeleteLeft as Delete,
+  FaArrowUpRightFromSquare as ExternalLink,
+  FaEye as Eye,
+  FaFolder as Folder,
+  FaFolderOpen as FolderOpen,
+  FaFolderPlus as FolderPlus,
+  FaImage as ImageIcon,
+  FaKeyboard as Keyboard,
+  FaEllipsis as MoreHorizontal,
+  FaPen as Pencil,
+  FaPlus as Plus,
+  FaRotate as RefreshCw,
+  FaMagnifyingGlass as Search,
+  FaShuffle as Shuffle,
+  FaSliders as SlidersHorizontal,
+  FaWandMagicSparkles as Sparkles,
+  FaTrash as Trash2,
+  FaXmark as X,
+  FaBolt as Zap,
+  FaNewspaper as Newspaper,
+  FaLocationCrosshairs as LocateFixed,
+  FaLocationDot as MapPin,
+  FaDroplet as Droplets,
+  FaWind as Wind,
+  // theme
+  FaSun as Sun,
+  FaMoon as Moon,
+  // weather
+  FaCloud as Cloud,
+  FaCloudSun as CloudSun,
+  FaCloudMoon as CloudMoon,
+  FaCloudRain as CloudDrizzle,
+  FaCloudShowersHeavy as CloudRain,
+  FaRegSnowflake as CloudSnow,
+  FaCloudBolt as CloudLightning,
+  FaSmog as CloudFog,
+  // settings
+  FaRegClock as Clock,
+  FaGear as Gear,
+  FaCircleInfo as Info,
+  FaPalette as Palette,
+  FaTableCellsLarge as Widgets,
+  FaFileExport as Export,
+  FaFileImport as Import,
+  FaRotateLeft as Restore,
+  FaTriangleExclamation as Warning,
+  FaCircleCheck as CheckCircle,
+} from 'react-icons/fa6'
+
+export {
+  MdCenterFocusStrong as Focus,
+  MdGridView as LayoutGrid,
+  MdViewAgenda as Rows3,
+  MdAddPhotoAlternate as ImagePlus,
+  MdOutlineViewSidebar as PanelRightOpen,
+  MdEditNote as NotebookPen,
+} from 'react-icons/md'

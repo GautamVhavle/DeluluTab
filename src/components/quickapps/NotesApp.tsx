@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Copy, Eye, Pencil, Trash2 } from 'lucide-react'
+import { Check, Copy, Eye, Pencil, Trash2 } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { MAX_NOTES_LENGTH, useAppStore } from '@/store/useAppStore'
 import { Button } from '@/components/ui/button'

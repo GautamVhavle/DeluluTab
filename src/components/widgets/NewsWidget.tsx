@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ExternalLink, RefreshCw } from 'lucide-react'
+import { ExternalLink, RefreshCw } from '@/lib/icons'
 import { useCachedResource } from '@/hooks/useCachedResource'
 import { categoryById, fetchNews, NEWS_CATEGORIES, timeAgo } from '@/lib/news'
 import { cn } from '@/lib/utils'

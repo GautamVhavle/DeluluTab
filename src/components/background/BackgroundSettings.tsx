@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode } from 'react'
-import { ImagePlus, Shuffle, X } from 'lucide-react'
+import { ImagePlus, Shuffle, X } from '@/lib/icons'
 import { blobsCss, GRADIENTS } from '@/lib/gradients'
 import { UNSPLASH_HOME } from '@/lib/unsplash'
 import { cn } from '@/lib/utils'

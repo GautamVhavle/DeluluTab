@@ -1,16 +1,49 @@
 import type { Chord, ChordTrigger, Shortcut } from '@/store/types'
 
-export const CHORD_TRIGGERS: { value: ChordTrigger; label: string }[] = [
-  { value: 'Backquote', label: '` (backtick)' },
-  { value: 'Space', label: 'Space' },
-  { value: 'Semicolon', label: '; (semicolon)' },
-]
-
-export const CHORD_WINDOWS_MS = [600, 800, 1000, 1200, 1500]
+export const MIN_CHORD_WINDOW_MS = 300
+export const MAX_CHORD_WINDOW_MS = 3000
+export const CHORD_WINDOW_STEP_MS = 100
 export const MAX_CHORD_LENGTH = 6
 
-/** Triggers that still fire while a text field is focused (everything else would swallow normal typing). */
-const TYPING_SAFE_TRIGGERS: ChordTrigger[] = ['Backquote']
+export const clampChordWindow = (ms: number) =>
+  Math.min(MAX_CHORD_WINDOW_MS, Math.max(MIN_CHORD_WINDOW_MS, Math.round(ms / CHORD_WINDOW_STEP_MS) * CHORD_WINDOW_STEP_MS))
+
+/**
+ * Keys that may start a chord, as KeyboardEvent.code values. Letters and digits are out (they type the chord),
+ * as are keys the page or browser already owns, so a chord can never fight normal typing or shortcuts.
+ */
+const TRIGGER_CODES = new Set([
+  'Backquote', 'Backslash', 'IntlBackslash', 'Semicolon', 'Quote', 'Comma', 'Period', 'Minus', 'Equal',
+  'BracketLeft', 'BracketRight', 'Space', 'F2', 'F4', 'F8', 'F9',
+])
+
+/** One-click choices in settings. */
+export const TRIGGER_PRESETS: ChordTrigger[] = ['Backquote', 'Backslash', 'Semicolon', 'Quote', 'Comma', 'Period', 'Space', 'F2', 'F4', 'F8', 'F9']
+
+const TRIGGER_LABELS: Record<string, string> = {
+  Backquote: '`', Backslash: '\\', IntlBackslash: '\\', Semicolon: ';', Quote: "'", Comma: ',', Period: '.',
+  Minus: '-', Equal: '=', BracketLeft: '[', BracketRight: ']', Space: 'Space',
+}
+
+export const triggerLabel = (code: ChordTrigger) => TRIGGER_LABELS[code] ?? code
+
+/** Returns why `code` can't be a trigger, or null if it can. */
+export function validateTrigger(code: string): string | null {
+  if (TRIGGER_CODES.has(code)) return null
+  if (/^(Key[A-Z]|Digit\d|Numpad\d)$/.test(code)) return "Letters and numbers type the chord itself, so they can't start one."
+  if (/^(Shift|Control|Alt|Meta|OS)(Left|Right)?$/.test(code) || code === 'CapsLock') return "Modifier keys can't start a chord."
+  if (code === 'Slash') return '/ already focuses the search bar.'
+  if (code === 'Escape') return 'Esc cancels a chord.'
+  if (code === 'Backspace') return 'Backspace undoes a key inside a chord.'
+  if (/^F(1|3|5|6|7|10|11|12)$/.test(code)) return 'The browser reserves that key.'
+  if (/^(Enter|Tab|Arrow|Home|End|Page|Delete|Insert)/.test(code)) return 'That key is used for moving around and editing.'
+  return 'Choose a punctuation key, Space, or F2, F4, F8 or F9.'
+}
+
+export const isValidTrigger = (code: string) => validateTrigger(code) === null
+
+/** Triggers that never produce text, so they still work while a text field is focused. Others would swallow typing. */
+const isTypingSafe = (code: ChordTrigger) => code === 'Backquote' || /^F\d+$/.test(code)
 
 const INVALID_FLASH_MS = 700
 const SUCCESS_FLASH_MS = 600
@@ -139,7 +172,7 @@ export function createChordEngine(options: EngineOptions) {
 
     if (state.status === 'idle') {
       if (e.code !== trigger || e.shiftKey || e.repeat) return
-      if (isEditable(e.target) && !TYPING_SAFE_TRIGGERS.includes(trigger)) return
+      if (isEditable(e.target) && !isTypingSafe(trigger)) return
       e.preventDefault()
       return evaluate('')
     }

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ArrowLeftRight, Copy, Delete } from 'lucide-react'
+import { ArrowLeftRight, Copy, Delete } from '@/lib/icons'
 import { CalcError, evaluate, formatResult } from '@/lib/calc'
 import { convert, categoryById, formatConverted, UNIT_CATEGORIES } from '@/lib/units'
 import { cn } from '@/lib/utils'
