@@ -24,7 +24,7 @@ export function MiniAppsButton() {
           onClick={() => setOpen(true)}
           aria-label="Open mini apps"
           title="Mini apps"
-          className="fixed bottom-4 right-4 z-40 grid h-11 w-11 place-items-center rounded-2xl border bg-card/80 text-foreground shadow-lg outline-none backdrop-blur-md transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring active:scale-95"
+          className="fixed bottom-16 right-4 z-40 grid h-11 w-11 place-items-center rounded-2xl border bg-card/80 text-foreground shadow-lg outline-none backdrop-blur-md transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring active:scale-95"
         >
           <LayoutGlyph />
           {openTasks > 0 && (

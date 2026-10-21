@@ -15,7 +15,7 @@ export function ModeSwitcher() {
 
   return (
     // Full-width, non-interactive rail so the pill can be centered without a CSS transform (GSAP animates this wrapper).
-    <div data-boot="switcher" className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center">
+    <div data-boot="switcher" className="pointer-events-none fixed inset-x-0 bottom-16 z-40 flex justify-center">
       <div
         role="radiogroup"
         aria-label="Layout mode"

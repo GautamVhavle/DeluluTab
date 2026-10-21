@@ -3,7 +3,7 @@
   "name": "DeluluTab",
   "short_name": "DeluluTab",
   "description": "A new tab for Chrome and Brave: search, AI, chords, weather, notes and a dashboard you can make your own.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "minimum_chrome_version": "111",
   "chrome_url_overrides": {
     "newtab": "index.html"

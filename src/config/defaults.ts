@@ -19,7 +19,7 @@ const prefers12h = () => {
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
-  layoutMode: 'detailed',
+  layoutMode: 'focus',
   backgroundSource: 'video',
   gradientPreset: 'iridescent',
   gradientColors: [],

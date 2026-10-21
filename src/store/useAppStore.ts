@@ -30,7 +30,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: STORAGE_KEY,
-      version: 10,
+      version: 11,
       // v1 chords carried a URL; v2 chords point at a shortcut. Re-link by URL, drop the unmatched.
       migrate: async (persisted, version) => {
         const state = (persisted ?? {}) as Record<string, any>
@@ -101,6 +101,10 @@ export const useAppStore = create<AppState>()(
           const settings = { ...state.settings }
           if (typeof settings.userName !== 'string' || !settings.userName.trim()) settings.userName = 'Cat'
           state.settings = settings
+        }
+        // v11: a new tab opens in Focus. Detailed is still one tap away.
+        if (version < 11 && state.settings?.layoutMode === 'detailed') {
+          state.settings = { ...state.settings, layoutMode: 'focus' }
         }
         return state as AppState
       },

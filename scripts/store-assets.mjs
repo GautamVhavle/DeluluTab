@@ -53,7 +53,7 @@ const SEED = {
       weatherLocation: { name: 'Hyderabad', latitude: 17.385, longitude: 78.4867 },
     },
   },
-  version: 10,
+  version: 11,
 }
 
 try {
@@ -80,7 +80,7 @@ try {
       saved.state.settings.ambientVideo = 'night-earth'
       saved.state.settings.weatherLocation = { name: 'Hyderabad', latitude: 17.385, longitude: 78.4867 }
       saved.state.widgets = { ...(saved.state.widgets ?? {}), pomodoro: next === 'focus', news: false }
-      saved.version = 10
+      saved.version = 11
       localStorage.setItem(key, JSON.stringify(saved))
     }, mode)
     await page.reload({ waitUntil: 'domcontentloaded' })

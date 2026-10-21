@@ -18,7 +18,7 @@ import {
   type IconType,
 } from '@/components/common/icons'
 import { useCachedResource } from '@/hooks/useCachedResource'
-import { useGeolocation } from '@/hooks/useGeolocation'
+import { requestCurrentPosition } from '@/hooks/useGeolocation'
 import {
   cityFromTimezone,
   describeWeather,
@@ -151,32 +151,10 @@ export function WeatherWidget({ mode }: WidgetProps) {
   const updateSettings = useAppStore((s) => s.updateSettings)
 
   const [picking, setPicking] = useState(false)
-  const [geoAttempt, setGeoAttempt] = useState(0)
-  const geo = useGeolocation(location === null, geoAttempt)
+  const [geoError, setGeoError] = useState('')
+  const [geoLoading, setGeoLoading] = useState(false)
 
-  // First visit, or "Use my location": the browser asks, then the city is saved as the weather place.
-  useEffect(() => {
-    if (location || !geo.coords) return
-    const point = geo.coords
-    let cancelled = false
-    placeFromCoords(point.latitude, point.longitude)
-      .catch(() => null)
-      .then((place) => {
-        if (cancelled || useAppStore.getState().settings.weatherLocation) return
-        updateSettings({
-          weatherLocation: {
-            name: place?.name || 'Your location',
-            latitude: point.latitude,
-            longitude: point.longitude,
-          },
-        })
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [location, geo.coords, updateSettings])
-
-  const coords = location ?? geo.coords
+  const coords = location
   const { data, error, loading, refresh } = useCachedResource(
     coords ? `weather:${coords.latitude},${coords.longitude}` : null,
     (signal) => fetchForecast(coords!.latitude, coords!.longitude, signal),
@@ -188,9 +166,25 @@ export function WeatherWidget({ mode }: WidgetProps) {
   const setUnit = (temperatureUnit: TemperatureUnit) => updateSettings({ temperatureUnit })
 
   const useMyLocation = () => {
-    updateSettings({ weatherLocation: null })
-    setGeoAttempt((n) => n + 1)
     setPicking(false)
+    setGeoError('')
+    setGeoLoading(true)
+    // Called in the click, so Brave and Chrome are allowed to show the location prompt.
+    void requestCurrentPosition()
+      .then(async (point) => {
+        const place = await placeFromCoords(point.latitude, point.longitude).catch(() => null)
+        updateSettings({
+          weatherLocation: {
+            name: place?.name || 'Your location',
+            latitude: point.latitude,
+            longitude: point.longitude,
+          },
+        })
+      })
+      .catch((err: unknown) => {
+        setGeoError(err instanceof Error ? err.message : "Couldn't work out where you are.")
+      })
+      .finally(() => setGeoLoading(false))
   }
 
   if (picking) {
@@ -208,25 +202,30 @@ export function WeatherWidget({ mode }: WidgetProps) {
 
   // Nothing to show yet.
   if (!data) {
-    const message = geo.error || error
+    const message = geoError || error
     return (
-      <div className="flex h-full flex-col justify-center gap-2 text-sm" aria-busy={!message}>
-        {message ? (
+      <div className="flex h-full flex-col justify-center gap-2 text-sm" aria-busy={!message && !geoLoading}>
+        {geoLoading ? (
+          <p className="text-muted-foreground">Allow location in the browser prompt. The weather will use your city.</p>
+        ) : message ? (
           <>
             <p role="alert" className="text-muted-foreground">{message}</p>
-            <div className="flex gap-2">
-              <Button size="sm" variant="secondary" onClick={() => setPicking(true)}>Choose a city</Button>
-              {coords ? (
-                <Button size="sm" variant="ghost" onClick={refresh}>Try again</Button>
-              ) : (
-                <Button size="sm" variant="ghost" onClick={() => setGeoAttempt((n) => n + 1)}>Try my location</Button>
-              )}
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="secondary" onClick={useMyLocation}>Use my location</Button>
+              <Button size="sm" variant="ghost" onClick={() => setPicking(true)}>Choose a city</Button>
+              {coords && <Button size="sm" variant="ghost" onClick={refresh}>Try again</Button>}
             </div>
           </>
+        ) : coords ? (
+          <p className="animate-pulse text-muted-foreground">Loading weather…</p>
         ) : (
-          <p className="animate-pulse text-muted-foreground">
-            {geo.loading ? 'Allow location in the browser prompt. The weather will use your city.' : 'Loading weather…'}
-          </p>
+          <>
+            <p className="text-muted-foreground">The weather needs your city.</p>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="secondary" onClick={useMyLocation}>Use my location</Button>
+              <Button size="sm" variant="ghost" onClick={() => setPicking(true)}>Choose a city</Button>
+            </div>
+          </>
         )}
       </div>
     )

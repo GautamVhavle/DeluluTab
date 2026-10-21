@@ -63,7 +63,7 @@ export function WidgetsPanel({ onClose }: { onClose: () => void }) {
         </label>
       </Section>
 
-      <Section title="Weather" hint={settings.weatherLocation ? `Showing ${settings.weatherLocation.name}. Click the place name on the weather card to change it.` : 'Using your location. Click the place name on the weather card to pick a city instead.'}>
+      <Section title="Weather" hint={settings.weatherLocation ? `Showing ${settings.weatherLocation.name}. Click the place name on the weather card to change it.` : 'The weather card asks before using your location. You can also search for a city there.'}>
         <Segmented<TemperatureUnit>
           label="Temperature unit"
           value={settings.temperatureUnit}

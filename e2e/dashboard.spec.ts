@@ -55,7 +55,8 @@ async function setMode(page: Page, mode: 'Detailed' | 'Focus') {
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('region', { name: 'Clock and greeting' })).toBeVisible()
-  await settle(page)
+  await expect(page.getByRole('radio', { name: 'Focus', exact: true })).toHaveAttribute('aria-checked', 'true')
+  await setMode(page, 'Detailed')
 })
 
 test('starts with the core widgets only, rows filled edge to edge', async ({ page }) => {

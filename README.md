@@ -50,7 +50,7 @@
 
 ## How to use
 
-Open a new tab. The clock, the search bar, the weather and your shortcuts are already there. The first visit greets **Cat**, plays **Night earth**, and asks for your location. The name, the scene and the city can all be changed afterwards.
+Open a new tab. It opens in **Focus**: the clock, the search bar and, once you turn it on, the timer. **Detailed** is the full dashboard, one tap on the switch at the bottom. The first visit greets **Cat** and plays **Night earth**. On Detailed, **Use my location** asks the browser for your city. The name, the scene and the city can all be changed afterwards.
 
 | Key | What it does |
 | --- | --- |
@@ -82,6 +82,8 @@ There is no store listing. You load the unpacked extension.
 **Brave**
 
 The same steps, at `brave://extensions`. Brave runs this Manifest V3 package the same way Chrome does. If Shields blocks a feed or a photo, allow DeluluTab for that page.
+
+Brave and Chrome draw their own bar along the bottom of a new tab. It shows the extension name and **Customize**. Right-click that bar and choose **Hide footer on New Tab page**. DeluluTab cannot remove a bar the browser draws.
 
 **Firefox**
 
