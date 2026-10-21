@@ -83,6 +83,9 @@ export {
   FaGripVertical as Grip,
   FaCode as Code,
   FaMinus as Minus,
+  FaQuoteLeft as Quote,
+  FaStopwatch as Stopwatch,
+  FaHourglassHalf as Hourglass,
 } from 'react-icons/fa6'
 
 export {

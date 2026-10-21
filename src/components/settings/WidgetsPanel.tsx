@@ -1,90 +1,48 @@
 import { useEffect, useState } from 'react'
 import { isGithubUsername } from '@/services/github'
-import { Code, Edit, Plus, Trash2 } from '@/components/common/icons'
+import { WIDGET_CATALOG } from '@/config/widgetCatalog'
+import { More, Section, Segmented, SliderRow, selectClass } from './SettingsUi'
+import { CustomWidgetsSection } from './CustomWidgetsSection'
 import { WIDGET_ICONS } from '@/components/widgets/widgetIcons'
 import { useIntegration } from '@/hooks/useIntegration'
-import { BUILTIN_WIDGETS, MAX_CUSTOM_WIDGETS } from '@/utils/widgetLayout'
-import { AI_PROVIDERS, NEWS_CATEGORIES, SEARCH_ENGINES } from '@/config/defaults'
+import { AI_PROVIDERS, SEARCH_ENGINES } from '@/config/defaults'
+import { NEWS_TOPICS, providersFor } from '@/services/news'
 import { cn } from '@/utils/cn'
-import { useAppStore, type AiProviderId, type ClockFormat, type NewsCategory, type SearchEngineId, type TemperatureUnit } from '@/store/useAppStore'
-import { Button } from '@/components/common/button'
+import { useAppStore, type AiProviderId, type NewsCategory, type SearchEngineId, type TemperatureUnit } from '@/store/useAppStore'
 import { Input } from '@/components/common/input'
-import { ClockStylePicker } from './ClockStylePicker'
 import { Switch } from '@/components/common/switch'
-import { Row, Section, Segmented, SliderRow, selectClass } from './SettingsUi'
 
 export function WidgetsPanel({ onClose }: { onClose: () => void }) {
   const widgets = useAppStore((s) => s.widgets)
   const setWidgetVisible = useAppStore((s) => s.setWidgetVisible)
-  const customWidgets = useAppStore((s) => s.customWidgets)
-  const addCustomWidget = useAppStore((s) => s.addCustomWidget)
-  const updateCustomWidget = useAppStore((s) => s.updateCustomWidget)
-  const removeCustomWidget = useAppStore((s) => s.removeCustomWidget)
-  const setCustomEditorId = useAppStore((s) => s.setCustomEditorId)
-  const setLayoutEditing = useAppStore((s) => s.setLayoutEditing)
   const settings = useAppStore((s) => s.settings)
   const updateSettings = useAppStore((s) => s.updateSettings)
-  const [confirmRemove, setConfirmRemove] = useState<string | null>(null)
-  const atCustomLimit = customWidgets.length >= MAX_CUSTOM_WIDGETS
 
   return (
     <div className="grid gap-7">
-      <Section title="Show on the dashboard" hint="Edit mode opens a tray, like iOS: drag a widget on, or use its switch here. New widgets stay off until you add them. Focus shows the clock, search, and the timer once you add it.">
+      <Section title="Optional widgets">
         <ul className="divide-y rounded-xl border">
-          {BUILTIN_WIDGETS.map(({ key, label, hint }) => {
-            const Icon = WIDGET_ICONS[key]
+          {WIDGET_CATALOG.filter((entry) => entry.optional && entry.key !== 'news').map((entry) => {
+            const Icon = WIDGET_ICONS[entry.key]
             return (
-              <li key={key} className="flex items-center justify-between gap-3 px-3 py-2">
+              <li key={entry.key} className="flex items-center justify-between gap-3 px-3 py-2">
                 <div className="flex min-w-0 items-center gap-3">
                   <Icon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
                   <div className="min-w-0">
-                    <p className="text-sm font-medium">{label}</p>
-                    <p className="truncate text-xs text-muted-foreground">{hint}</p>
+                    <p className="text-sm font-medium">{entry.label}</p>
+                    <p className="truncate text-xs text-muted-foreground">{entry.hint}</p>
                   </div>
                 </div>
-                <Switch aria-label={label} checked={widgets[key]} onCheckedChange={(v) => setWidgetVisible(key, v)} />
+                <Switch aria-label={entry.label} checked={widgets[entry.key]} onCheckedChange={(v) => setWidgetVisible(entry.key, v)} />
               </li>
             )
           })}
         </ul>
-        <Button type="button" variant="outline" onClick={() => { setLayoutEditing(true); onClose() }}>
-          <Edit /> Arrange on the dashboard
-        </Button>
       </Section>
 
-      <Section title="Custom widgets" hint="Your own HTML, CSS and JavaScript. Code runs in a sandbox and cannot see the rest of DeluluTab. Up to 8.">
-        {customWidgets.length > 0 && (
-          <ul className="divide-y rounded-xl border">
-            {customWidgets.map((widget) => (
-              <li key={widget.id} className="flex items-center justify-between gap-2 px-3 py-2">
-                <div className="flex min-w-0 items-center gap-3">
-                  <Code className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-                  <p className="truncate text-sm font-medium">{widget.name.trim() || 'Custom widget'}</p>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <Button type="button" variant="ghost" size="icon" aria-label={`Edit ${widget.name || 'custom widget'}`} onClick={() => { setCustomEditorId(widget.id); onClose() }}>
-                    <Edit />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label={confirmRemove === widget.id ? `Confirm delete ${widget.name || 'custom widget'}` : `Delete ${widget.name || 'custom widget'}`}
-                    onClick={() => { if (confirmRemove === widget.id) removeCustomWidget(widget.id); else setConfirmRemove(widget.id) }}
-                  >
-                    <Trash2 />
-                  </Button>
-                  <Switch aria-label={`Show ${widget.name || 'custom widget'}`} checked={widget.enabled} onCheckedChange={(enabled) => updateCustomWidget(widget.id, { enabled })} />
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-        <Button type="button" onClick={() => { if (addCustomWidget()) onClose() }} disabled={atCustomLimit}>
-          <Plus /> {atCustomLimit ? 'Custom widget limit reached' : 'Add custom widget'}
-        </Button>
-      </Section>
+      <CustomWidgetsSection onClose={onClose} />
 
+      <More label="Search, weather, timer and news">
       <Section title="Defaults">
         <label className="grid gap-1.5 text-sm">
           Search engine
@@ -103,19 +61,6 @@ export function WidgetsPanel({ onClose }: { onClose: () => void }) {
             {AI_PROVIDERS.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         </label>
-      </Section>
-
-      <Section title="Clock">
-        <ClockStylePicker />
-        <Segmented<ClockFormat>
-          label="Clock format"
-          value={settings.clockFormat}
-          onChange={(clockFormat) => updateSettings({ clockFormat })}
-          options={[{ value: '12h', label: '12-hour' }, { value: '24h', label: '24-hour' }]}
-        />
-        <Row label="Show seconds">
-          <Switch aria-label="Show seconds" checked={settings.showSeconds} onCheckedChange={(showSeconds) => updateSettings({ showSeconds })} />
-        </Row>
       </Section>
 
       <Section title="Weather" hint={settings.weatherLocation ? `Showing ${settings.weatherLocation.name}. Click the place name on the weather card to change it.` : 'Using your location. Click the place name on the weather card to pick a city instead.'}>
@@ -142,25 +87,42 @@ export function WidgetsPanel({ onClose }: { onClose: () => void }) {
 
       <GithubSetting />
 
-      <Section title="News">
-        <div role="radiogroup" aria-label="News category" className="flex flex-wrap gap-1.5">
-          {NEWS_CATEGORIES.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              role="radio"
-              aria-checked={settings.newsCategory === c.id}
-              onClick={() => updateSettings({ newsCategory: c.id as NewsCategory })}
-              className={cn(
-                'rounded-full px-3 py-1 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                settings.newsCategory === c.id ? 'bg-primary text-primary-foreground' : 'bg-secondary/70 text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
+      <Section title="News" hint="Pick a favourite publication for each topic. If that feed is quiet, the others for the same topic fill in, with their photos.">
+        <ul className="grid gap-2">
+          {NEWS_TOPICS.map((topic) => {
+            const topics = settings.newsTopics?.length ? settings.newsTopics : NEWS_TOPICS.map((item) => item.id)
+            const on = topics.includes(topic.id)
+            const choices = providersFor(topic.id)
+            const saved = settings.newsProviders?.[topic.id]
+            const current = choices.some((provider) => provider.id === saved) ? saved : choices[0]?.id
+            return (
+              <li key={topic.id} className="flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => {
+                    const next = on ? topics.filter((id) => id !== topic.id) : [...topics, topic.id]
+                    updateSettings({ newsTopics: next.length ? next : [topic.id], newsCategory: next[0] ?? topic.id })
+                  }}
+                  className={cn('w-24 shrink-0 rounded-full px-3 py-1 text-sm', on ? 'bg-primary text-primary-foreground' : 'bg-secondary/70 text-muted-foreground')}
+                >
+                  {topic.label}
+                </button>
+                <select
+                  aria-label={`${topic.label} provider`}
+                  className={selectClass}
+                  disabled={!on}
+                  value={current}
+                  onChange={(e) => updateSettings({ newsProviders: { ...settings.newsProviders, [topic.id]: e.target.value }, newsCategory: topic.id as NewsCategory })}
+                >
+                  {choices.map((provider) => <option key={provider.id} value={provider.id}>{provider.label}</option>)}
+                </select>
+              </li>
+            )
+          })}
+        </ul>
       </Section>
+      </More>
     </div>
   )
 }
@@ -183,7 +145,7 @@ function GithubSetting() {
   }
 
   return (
-    <Section title="GitHub" hint="Your public username, stored on this device only. Nothing is sent except that name, and no token is needed.">
+    <Section title="GitHub">
       <Input
         value={draft}
         maxLength={40}

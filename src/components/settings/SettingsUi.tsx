@@ -1,8 +1,26 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { cn } from '@/utils/cn'
 
 export const selectClass =
   'h-9 w-full rounded-md border border-input bg-background/60 px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+
+/** Extra controls, closed until someone asks. Keeps the first screen to the choices people actually make. */
+export function More({ children, label = 'More' }: { children: ReactNode; label?: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="grid gap-4">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        className="justify-self-start text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+      >
+        {open ? 'Show less' : label}
+      </button>
+      {open && <div className="grid gap-7">{children}</div>}
+    </div>
+  )
+}
 
 export function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (

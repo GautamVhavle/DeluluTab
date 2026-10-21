@@ -1,22 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { Trash2 } from '@/components/common/icons'
-import { MAX_WIDGET_CODE, MAX_WIDGET_NAME } from '@/utils/widgetLayout'
 import { WIDGET_FRAME_SANDBOX, WIDGET_MESSAGE, widgetSandboxUrl } from '@/services/widgetSandbox'
-import { cn } from '@/utils/cn'
 import { useIsDark } from '@/hooks/use-theme'
-import { useAppStore, type CustomWidget } from '@/store/useAppStore'
-import { Button } from '@/components/common/button'
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/common/dialog'
-import { Input } from '@/components/common/input'
+import type { CustomWidget } from '@/store/useAppStore'
 
 const SANDBOX_URL = widgetSandboxUrl()
-const TABS = [
-  { id: 'html', label: 'HTML' },
-  { id: 'css', label: 'CSS' },
-  { id: 'js', label: 'JS' },
-] as const
-
-type CodeTab = (typeof TABS)[number]['id']
 
 /**
  * Renders one custom widget in a sandboxed iframe. The frame cannot read DeluluTab state, chrome APIs,
@@ -82,81 +69,5 @@ export function CustomCodeWidget({ widget }: { widget: CustomWidget }) {
         </p>
       )}
     </div>
-  )
-}
-
-/** Editor for the custom widget currently selected in the store. Mounted once, from the app shell. */
-export function CustomWidgetEditor() {
-  const id = useAppStore((s) => s.customEditorId)
-  const widget = useAppStore((s) => s.customWidgets.find((w) => w.id === id) ?? null)
-  const update = useAppStore((s) => s.updateCustomWidget)
-  const remove = useAppStore((s) => s.removeCustomWidget)
-  const close = useAppStore((s) => s.setCustomEditorId)
-  const [tab, setTab] = useState<CodeTab>('html')
-  const [confirming, setConfirming] = useState(false)
-
-  useEffect(() => {
-    setTab('html')
-    setConfirming(false)
-  }, [id])
-
-  return (
-    <Dialog open={widget !== null} onOpenChange={(open) => { if (!open) close(null) }}>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
-        <DialogTitle>Custom widget</DialogTitle>
-        <DialogDescription>
-          HTML, CSS and JavaScript run in a sandbox. They cannot read your notes, tabs, or the rest of DeluluTab. HTTPS embeds are allowed. External script tags are ignored.
-        </DialogDescription>
-        {widget && (
-          <div className="grid gap-3">
-            <Input
-              aria-label="Widget name"
-              value={widget.name}
-              maxLength={MAX_WIDGET_NAME}
-              onChange={(e) => update(widget.id, { name: e.target.value })}
-            />
-            <div role="tablist" aria-label="Code language" className="flex gap-1">
-              {TABS.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === item.id}
-                  onClick={() => setTab(item.id)}
-                  className={cn(
-                    'rounded-md px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                    tab === item.id ? 'bg-primary text-primary-foreground' : 'bg-secondary/70 text-muted-foreground',
-                  )}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-            <textarea
-              aria-label={`${tab.toUpperCase()} code`}
-              value={widget[tab]}
-              maxLength={MAX_WIDGET_CODE}
-              spellCheck={false}
-              onChange={(e) => update(widget.id, { [tab]: e.target.value })}
-              className="min-h-40 w-full resize-y rounded-lg border bg-background/70 p-3 font-mono text-xs leading-relaxed focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-            <p className="text-right text-[11px] text-muted-foreground">{widget[tab].length.toLocaleString()} / {MAX_WIDGET_CODE.toLocaleString()}</p>
-            <div className="h-44 overflow-hidden rounded-xl border bg-card/40">
-              <CustomCodeWidget widget={widget} />
-            </div>
-            <div className="flex justify-end">
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                onClick={() => { if (confirming) remove(widget.id); else setConfirming(true) }}
-              >
-                <Trash2 /> {confirming ? 'Confirm delete' : 'Delete widget'}
-              </Button>
-            </div>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
   )
 }

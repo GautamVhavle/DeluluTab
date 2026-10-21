@@ -1,29 +1,24 @@
 import { Plus } from '@/components/common/icons'
-import { motion } from 'framer-motion'
 import { cn } from '@/utils/cn'
 
+/** The last cell on the grid. Same size as an app, so adding one never changes the layout. */
 export function AddTile({ compact, label, onClick }: { compact: boolean; label: string; onClick: () => void }) {
   return (
-    <motion.button
-      layout
-      whileHover={{ y: -3 }}
-      whileTap={{ scale: 0.96 }}
+    <button
+      type="button"
       onClick={onClick}
       aria-label={`${label} shortcut`}
-      className={cn(
-        'flex flex-col items-center rounded-xl text-muted-foreground outline-none transition-colors hover:bg-accent/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring',
-        compact ? 'w-12 p-1.5' : 'w-[4.75rem] gap-2 p-2',
-      )}
+      className="flex flex-col items-center gap-1.5 rounded-2xl p-1.5 text-muted-foreground outline-none transition-transform hover:-translate-y-0.5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
     >
       <span
         className={cn(
-          'grid place-items-center rounded-xl border border-dashed',
-          compact ? 'h-9 w-9' : 'h-11 w-11',
+          'grid place-items-center rounded-2xl border border-dashed border-black/15 dark:border-white/20',
+          compact ? 'h-10 w-10' : 'h-12 w-12',
         )}
       >
-        <Plus className="h-5 w-5" />
+        <Plus className="h-4 w-4" />
       </span>
-      {!compact && <span className="text-xs">{label}</span>}
-    </motion.button>
+      {!compact && <span className="text-[11px] font-medium leading-tight">{label}</span>}
+    </button>
   )
 }

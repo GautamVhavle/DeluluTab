@@ -1,3 +1,24 @@
+/* Registered as colours so light and dark can ease into each other, not snap. */
+@property --background { syntax: '<color>'; inherits: true; initial-value: #ffffff; }
+@property --foreground { syntax: '<color>'; inherits: true; initial-value: #020617; }
+@property --card { syntax: '<color>'; inherits: true; initial-value: #ffffff; }
+@property --card-foreground { syntax: '<color>'; inherits: true; initial-value: #020617; }
+@property --popover { syntax: '<color>'; inherits: true; initial-value: #ffffff; }
+@property --popover-foreground { syntax: '<color>'; inherits: true; initial-value: #020617; }
+@property --primary { syntax: '<color>'; inherits: true; initial-value: #7c3aed; }
+@property --primary-foreground { syntax: '<color>'; inherits: true; initial-value: #f8fafc; }
+@property --secondary { syntax: '<color>'; inherits: true; initial-value: #f1f5f9; }
+@property --secondary-foreground { syntax: '<color>'; inherits: true; initial-value: #0f172a; }
+@property --muted { syntax: '<color>'; inherits: true; initial-value: #f1f5f9; }
+@property --muted-foreground { syntax: '<color>'; inherits: true; initial-value: #64748b; }
+@property --accent { syntax: '<color>'; inherits: true; initial-value: #f1f5f9; }
+@property --accent-foreground { syntax: '<color>'; inherits: true; initial-value: #0f172a; }
+@property --destructive { syntax: '<color>'; inherits: true; initial-value: #ef4444; }
+@property --destructive-foreground { syntax: '<color>'; inherits: true; initial-value: #f8fafc; }
+@property --border { syntax: '<color>'; inherits: true; initial-value: #e2e8f0; }
+@property --input { syntax: '<color>'; inherits: true; initial-value: #e2e8f0; }
+@property --ring { syntax: '<color>'; inherits: true; initial-value: #7c3aed; }
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,48 +26,72 @@
 @layer base {
   :root {
     --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 262.1 83.3% 57.8%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 262.1 83.3% 57.8%;
+    --background: hsl(0 0% 100%);
+    --foreground: hsl(222.2 84% 4.9%);
+    --card: hsl(0 0% 100%);
+    --card-foreground: hsl(222.2 84% 4.9%);
+    --popover: hsl(0 0% 100%);
+    --popover-foreground: hsl(222.2 84% 4.9%);
+    --primary: hsl(262.1 83.3% 57.8%);
+    --primary-foreground: hsl(210 40% 98%);
+    --secondary: hsl(210 40% 96.1%);
+    --secondary-foreground: hsl(222.2 47.4% 11.2%);
+    --muted: hsl(210 40% 96.1%);
+    --muted-foreground: hsl(215.4 16.3% 46.9%);
+    --accent: hsl(210 40% 96.1%);
+    --accent-foreground: hsl(222.2 47.4% 11.2%);
+    --destructive: hsl(0 84.2% 60.2%);
+    --destructive-foreground: hsl(210 40% 98%);
+    --border: hsl(214.3 31.8% 91.4%);
+    --input: hsl(214.3 31.8% 91.4%);
+    --ring: hsl(262.1 83.3% 57.8%);
     --radius: 0.75rem;
   }
 
   .dark {
-    --background: 229 84% 5%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 47.4% 8%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 47.4% 8%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 263.4 70% 50.4%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 263.4 70% 50.4%;
+    --background: hsl(229 84% 5%);
+    --foreground: hsl(210 40% 98%);
+    --card: hsl(222.2 47.4% 8%);
+    --card-foreground: hsl(210 40% 98%);
+    --popover: hsl(222.2 47.4% 8%);
+    --popover-foreground: hsl(210 40% 98%);
+    --primary: hsl(263.4 70% 50.4%);
+    --primary-foreground: hsl(210 40% 98%);
+    --secondary: hsl(217.2 32.6% 17.5%);
+    --secondary-foreground: hsl(210 40% 98%);
+    --muted: hsl(217.2 32.6% 17.5%);
+    --muted-foreground: hsl(215 20.2% 65.1%);
+    --accent: hsl(217.2 32.6% 17.5%);
+    --accent-foreground: hsl(210 40% 98%);
+    --destructive: hsl(0 62.8% 30.6%);
+    --destructive-foreground: hsl(210 40% 98%);
+    --border: hsl(217.2 32.6% 17.5%);
+    --input: hsl(217.2 32.6% 17.5%);
+    --ring: hsl(263.4 70% 50.4%);
+  }
+
+  /* The registered colours ease. Literal light/dark utilities ease only while the class is on, so hovers stay quick. */
+  html {
+    transition:
+      --background 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --foreground 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --card 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --card-foreground 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --popover 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --popover-foreground 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --primary 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --primary-foreground 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --secondary 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --secondary-foreground 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --muted 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --muted-foreground 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --accent 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --accent-foreground 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --destructive 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --destructive-foreground 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --border 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --input 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      --ring 0.7s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   * {
@@ -65,6 +110,19 @@
     @apply bg-background text-foreground font-sans antialiased;
     font-size: 1rem;
   }
+
+  /* Type that sits on the wallpaper follows the wallpaper. Cards keep the theme, on their own plate. */
+  html[data-bg='light'] .wallpaper-ink {
+    --foreground: hsl(222.2 47.4% 11.2%);
+    --muted-foreground: hsl(215.4 16.3% 32%);
+    color: var(--foreground);
+  }
+  html[data-bg='dark'] .wallpaper-ink {
+    --foreground: hsl(210 40% 98%);
+    --muted-foreground: hsl(215 20.2% 80%);
+    color: var(--foreground);
+    text-shadow: 0 1px 16px rgb(0 0 0 / 0.45);
+  }
 }
 
 /* Retro flip clock (see components/widgets/clocks/FlipClock). Sized by --flip-h. */
@@ -76,6 +134,7 @@
     width: calc(var(--flip-h) * 1.3);
     perspective: calc(var(--flip-h) * 6);
     font-variant-numeric: tabular-nums;
+    font-family: var(--flip-font, inherit);
   }
   .flip-half {
     position: absolute;
@@ -83,9 +142,9 @@
     right: 0;
     height: 50%;
     overflow: hidden;
-    background: hsl(var(--card));
-    color: hsl(var(--foreground));
-    box-shadow: inset 0 0 0 1px hsl(var(--border));
+    background: var(--card);
+    color: var(--flip-ink, var(--foreground));
+    box-shadow: inset 0 0 0 1px var(--border);
   }
   .flip-half > span {
     position: absolute;
@@ -95,7 +154,7 @@
     display: grid;
     place-items: center;
     font-size: calc(var(--flip-h) * 0.62);
-    font-weight: 500;
+    font-weight: var(--flip-weight, 500);
     line-height: 1;
   }
   .flip-top { top: 0; border-radius: 0.45rem 0.45rem 0 0; }
@@ -112,7 +171,7 @@
     top: 50%;
     height: 2px;
     transform: translateY(-1px);
-    background: hsl(var(--background) / 0.85);
+    background: color-mix(in srgb, var(--background) 85%, transparent);
     z-index: 3;
   }
   @keyframes flip-fold { to { transform: rotateX(-90deg); } }
@@ -138,19 +197,10 @@
     mask-image: linear-gradient(to bottom, #000 calc(100% - 1.75rem), transparent);
   }
   .widget-grid .react-grid-item.react-grid-placeholder {
-    background: hsl(var(--primary) / 0.16);
-    border: 1px dashed hsl(var(--primary) / 0.75);
+    background: color-mix(in srgb, var(--primary) 16%, transparent);
+    border: 1px dashed color-mix(in srgb, var(--primary) 75%, transparent);
     border-radius: 1rem;
     opacity: 1;
-  }
-  .widget-grid:not(.is-editing) .react-grid-item > .react-resizable-handle {
-    display: none;
-  }
-  .widget-grid.is-editing .react-grid-item > .react-resizable-handle {
-    opacity: 1;
-  }
-  .widget-grid .react-grid-item > .react-resizable-handle::after {
-    border-color: hsl(var(--foreground) / 0.55);
   }
   .widget-grid:not(.is-editing) .react-grid-item img {
     pointer-events: auto;
@@ -169,4 +219,72 @@
   @media (prefers-reduced-motion: reduce) {
     .widget-grid.is-editing .widget-card { animation: none; }
   }
+}
+
+/* Unlayered on purpose: the grid library's stylesheet is unlayered too, and a rule inside
+   @layer would lose to it. Widgets are a fixed size; the corner grip must never come back. */
+.react-grid-item > .react-resizable-handle {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-boot='header'] {
+    animation: boot-drop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  [data-boot='dashboard'] {
+    animation: boot-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+  }
+  [data-boot='switcher'] {
+    animation: boot-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+  }
+}
+
+@keyframes boot-drop {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes boot-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Literal light/dark utilities (slate text, white cards) are not the registered tokens, so they get the same ease. */
+html.theme-fade,
+html.theme-fade *,
+html.theme-fade *::before,
+html.theme-fade *::after {
+  transition-property: background-color, color, border-color, fill, stroke !important;
+  transition-duration: 0.7s !important;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+@keyframes second-tick {
+  from { opacity: 0.2; transform: translateY(0.18em); }
+  to { opacity: 1; transform: none; }
+}
+.second-tick { animation: second-tick 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+
+@keyframes solid-fade {
+  to { background-color: var(--solid-to); }
+}
+.solid-fade {
+  animation: solid-fade 9s ease-in-out infinite alternate;
+}
+@keyframes solid-breathe {
+  0%, 100% { opacity: 0.28; transform: scale(0.92); }
+  50% { opacity: 0.92; transform: scale(1.06); }
+}
+.solid-breathe {
+  animation: solid-breathe 5.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { transition: none; }
+  html.theme-fade,
+  html.theme-fade *,
+  html.theme-fade *::before,
+  html.theme-fade *::after { transition: none !important; }
+  .solid-fade, .solid-breathe, .second-tick { animation: none; }
 }

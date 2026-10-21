@@ -20,7 +20,19 @@ export function useApplyTheme() {
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const apply = () => {
       const dark = theme === 'dark' || (theme === 'dynamic' && mq.matches)
-      document.documentElement.classList.toggle('dark', dark)
+      const root = document.documentElement
+      if (root.classList.contains('dark') === dark) return
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (reduce) {
+        root.classList.toggle('dark', dark)
+        return
+      }
+      // The fade class has to be on before the colours change, or the browser skips the ease.
+      root.classList.add('theme-fade')
+      requestAnimationFrame(() => {
+        root.classList.toggle('dark', dark)
+        window.setTimeout(() => root.classList.remove('theme-fade'), 760)
+      })
     }
     apply()
     if (theme !== 'dynamic') return

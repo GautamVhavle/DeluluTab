@@ -20,3 +20,17 @@ export function hostnameOf(url: string): string {
     return url
   }
 }
+
+/** The short name under an app icon. Drops a tagline ("GitHub: Build…") and a raw address ("youtube.com"). */
+export function appTitle(title: string, url: string): string {
+  const name = title.trim()
+  const host = hostnameOf(url)
+  const looksLikeAddress = !name || name === host || name === url || /^https?:\/\//i.test(name)
+  if (looksLikeAddress) {
+    const parts = host.split('.').filter(Boolean)
+    const stem = parts.length > 1 ? parts[parts.length - 2] : parts[0]
+    if (!stem) return name || host
+    return stem.charAt(0).toUpperCase() + stem.slice(1)
+  }
+  return name.split(/\s+[-|–—·]\s+|:\s+/)[0]?.trim() || name
+}

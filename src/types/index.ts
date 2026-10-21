@@ -4,11 +4,20 @@ export type LayoutMode = 'compact' | 'detailed' | 'focus'
 export type CommandMode = 'web' | 'ai'
 export type ClockFormat = '12h' | '24h'
 export type TemperatureUnit = 'c' | 'f'
-export type SearchEngineId = 'google' | 'duckduckgo' | 'bing' | 'ecosia' | 'perplexity' | 'chatgpt' | 'claude'
+export type SearchEngineId = 'google' | 'duckduckgo' | 'bing' | 'brave' | 'perplexity' | 'chatgpt' | 'claude'
 export type AiProviderId = 'chatgpt' | 'claude' | 'grok' | 'gemini' | 'perplexity'
 export type NewsCategory = 'tech' | 'ai' | 'science' | 'world' | 'business'
 export type FontId = 'inter' | 'jetbrains' | 'outfit' | 'space-grotesk' | 'cinzel'
 export type ClockStyle = 'digital' | 'flip' | 'analog' | 'world'
+export type ClockWeight = 'lighter' | 'light' | 'normal' | 'bold' | 'bolder' | 'boldest'
+export type ClockFont = 'sans' | 'serif' | 'mono'
+export type ClockTracking = 'tight' | 'normal' | 'wide'
+/** Parts of the day a greeting can speak to. */
+export type GreetingPeriod = 'late' | 'morning' | 'afternoon' | 'evening' | 'night'
+/** Lines for each part of the day. */
+export type GreetingBook = Record<GreetingPeriod, string[]>
+/** Where the quote widget reads from. */
+export type QuoteSource = 'builtin' | 'classics' | 'custom' | 'zenquotes' | 'quotable' | 'url'
 export type TabTitleMode = 'name' | 'time' | 'custom'
 
 export interface WeatherLocation {
@@ -17,7 +26,9 @@ export interface WeatherLocation {
   longitude: number
 }
 
-export type BackgroundSource = 'unsplash' | 'gradient' | 'custom'
+export type BackgroundSource = 'gradient' | 'custom' | 'video' | 'solid'
+/** Motion on a solid colour. Still is flat. Fade and breathe move between two colours the person picks. */
+export type SolidEffect = 'still' | 'fade' | 'breathe'
 export type BackgroundRotation = 'off' | 'newtab' | '1m' | '5m' | '15m' | '1h'
 
 /** Physical key (a KeyboardEvent.code such as 'Backquote') that starts a chord. See utils/chords for the allowed keys. */
@@ -29,8 +40,20 @@ export interface Settings {
   backgroundSource: BackgroundSource
   /** Id from config/gradients, shown when the slideshow is off. */
   gradientPreset: string
-  /** Unsplash search keywords. */
-  unsplashQuery: string
+  /** Custom stops for the living gradient. Empty means the preset's own colours. */
+  gradientColors: string[]
+  /** Id from config/ambientVideos, shown when the background is a live scene. */
+  ambientVideo: string
+  /** HTTPS picture, or JSON with a url, shown with uploads. Empty uses the saved images. */
+  imageLink: string
+  /** Flat colour shown when the background is solid. */
+  solidColor: string
+  /** How that colour moves. */
+  solidEffect: SolidEffect
+  /** The second colour fade and breathe move toward. */
+  solidEffectColor: string
+  /** Colours the person saved, on top of the built-in ones. */
+  solidCustom: string[]
   backgroundRotation: BackgroundRotation
   /** Extra readability overlay on top of the adaptive one, 0-60 (%). */
   backgroundDim: number
@@ -40,6 +63,10 @@ export interface Settings {
   showSeconds: boolean
   /** Optional, used in the greeting. */
   userName: string
+  /** Custom lines for each part of the day. Null keeps the built-in greetings. */
+  greetings: GreetingBook | null
+  /** Name in the header and on the browser tab. Empty keeps DeluluTab. */
+  appName: string
   searchEngine: SearchEngineId
   /** Search the web, or ask an AI. The bar remembers which one you used last. */
   commandMode: CommandMode
@@ -47,6 +74,16 @@ export interface Settings {
   /** null = detect automatically with the browser's geolocation. */
   weatherLocation: WeatherLocation | null
   newsCategory: NewsCategory
+  /** Topics mixed into the bottom news rail. */
+  newsTopics: NewsCategory[]
+  /** Chosen provider id per topic. Missing means that topic's first provider. */
+  newsProviders: Partial<Record<NewsCategory, string>>
+  /** Which list the quote widget walks, one line per minute. */
+  quoteSource: QuoteSource
+  /** Lines the user wrote. Used when quoteSource is custom. */
+  customQuotes: { text: string; by: string }[]
+  /** HTTPS JSON file used when quoteSource is url. */
+  quoteUrl: string
   /** Preferred AI for the prompt launcher; remembered from the last one used. */
   aiProvider: AiProviderId
   /** What the browser tab says. */
@@ -60,6 +97,12 @@ export interface Settings {
   /** Fetch website and platform logos from the web (turn off for symbols only, with no logo requests). */
   showLogos: boolean
   clockStyle: ClockStyle
+  clockWeight: ClockWeight
+  /** Face used for the numerals. Sans follows the page typeface. */
+  clockFont: ClockFont
+  clockTracking: ClockTracking
+  /** Numeral color as #rrggbb, or null to follow the theme. */
+  clockColor: string | null
   /** IANA zone shown next to local time by the World clock. */
   secondTimezone: string
   /** Accent color as #rrggbb, or null for the built-in violet. */
@@ -134,7 +177,7 @@ export interface AiPreset {
 
 export type QuickAppsTab = 'notes' | 'todos' | 'calc'
 
-export type WidgetKey = 'clock' | 'weather' | 'search' | 'aiLauncher' | 'news' | 'quickApps' | 'tabStash' | 'github' | 'pomodoro' | 'spotify'
+export type WidgetKey = 'clock' | 'weather' | 'search' | 'aiLauncher' | 'news' | 'quotes' | 'quickApps' | 'tabStash' | 'github' | 'pomodoro' | 'spotify'
 export type WidgetsState = Record<WidgetKey, boolean>
 
 /** One cell in the dashboard grid. Coordinates are in grid units, not pixels. */
@@ -159,4 +202,11 @@ export interface CustomWidget {
   css: string
   js: string
   enabled: boolean
+}
+
+/** A user-made mini app: one HTML document, kept on this device. */
+export interface MiniApp {
+  id: string
+  name: string
+  html: string
 }

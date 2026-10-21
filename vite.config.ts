@@ -6,6 +6,74 @@ import react from '@vitejs/plugin-react'
 const pkg = JSON.parse(readFileSync(path.resolve(__dirname, 'package.json'), 'utf8')) as { version: string }
 
 /** package.json is the one place the version lives; stamp it into the built manifest. */
+/** Dev-only. The page cannot read publisher feeds directly (CORS); the dev server can. */
+function rssProxy(): Plugin {
+  const allowed = new Set([
+    'www.theverge.com',
+    'feeds.arstechnica.com',
+    'www.theguardian.com',
+    'feeds.bbci.co.uk',
+    'www.nasa.gov',
+    'www.technologyreview.com',
+  ])
+  return {
+    name: 'delulutab:rss-proxy',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use('/rss-proxy', async (req, res) => {
+        try {
+          const raw = req.url ?? ''
+          const query = raw.includes('?') ? raw.slice(raw.indexOf('?')) : ''
+          const target = new URLSearchParams(query).get('url') ?? ''
+          const host = new URL(target).hostname
+          if (!allowed.has(host)) {
+            res.statusCode = 403
+            res.end('Feed host is not allowed.')
+            return
+          }
+          const response = await fetch(target, { headers: { Accept: 'application/rss+xml, application/xml, text/xml, */*', 'User-Agent': 'DeluluTab' } })
+          res.statusCode = response.ok ? 200 : response.status
+          res.setHeader('content-type', 'text/xml; charset=utf-8')
+          res.end(await response.text())
+        } catch {
+          res.statusCode = 502
+          res.end('Feed could not be fetched.')
+        }
+      })
+    },
+  }
+}
+
+/** Dev-only. ZenQuotes and many hosted JSON files send no CORS header; the dev server can read them. */
+function quoteProxy(): Plugin {
+  return {
+    name: 'delulutab:quote-proxy',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use('/quote-proxy', async (req, res) => {
+        try {
+          const raw = req.url ?? ''
+          const query = raw.includes('?') ? raw.slice(raw.indexOf('?')) : ''
+          const target = new URL(new URLSearchParams(query).get('url') ?? '')
+          if (target.protocol !== 'https:') {
+            res.statusCode = 403
+            res.end('Quote links must be https.')
+            return
+          }
+          const response = await fetch(target, { headers: { Accept: 'application/json, text/plain, */*', 'User-Agent': 'DeluluTab' } })
+          const body = await response.text()
+          res.statusCode = response.ok ? 200 : response.status
+          res.setHeader('content-type', 'application/json; charset=utf-8')
+          res.end(body.slice(0, 500_000))
+        } catch {
+          res.statusCode = 502
+          res.end('Quote source could not be fetched.')
+        }
+      })
+    },
+  }
+}
+
 function manifestVersion(): Plugin {
   let outDir = 'dist'
   return {
@@ -26,7 +94,7 @@ function manifestVersion(): Plugin {
 // Everything in `public/` (manifest.json, icons, theme-boot.js) is copied verbatim into `dist/`,
 // so `dist/` can be loaded directly via chrome://extensions → "Load unpacked" or zipped for the Web Store.
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), manifestVersion()],
+  plugins: [react(), manifestVersion(), rssProxy(), quoteProxy()],
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   // Relative asset URLs so the page resolves under chrome-extension://<id>/
   base: './',
@@ -63,7 +131,6 @@ export default defineConfig(({ mode }) => ({
           if (!id.includes('node_modules')) return undefined
           if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return 'react'
           if (/node_modules\/(framer-motion|motion-dom|motion-utils)\//.test(id)) return 'motion'
-          if (id.includes('node_modules/gsap/')) return 'gsap'
           return 'vendor'
         },
       },

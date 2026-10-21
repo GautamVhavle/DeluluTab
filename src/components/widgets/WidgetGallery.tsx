@@ -92,7 +92,7 @@ export function WidgetGallery() {
         <ul className="flex snap-x gap-2 overflow-x-auto pb-1 [mask-image:linear-gradient(to_right,#000_calc(100%-2rem),transparent)]">
           {entries.map((entry) => {
             const Icon = WIDGET_ICONS[entry.key]
-            const note = mode === 'focus' && !entry.focus ? 'Shows in Detailed and Compact.' : entry.localSetup
+            const note = mode === 'focus' && !entry.focus ? 'Shows in Detailed.' : entry.localSetup
             return (
               <GalleryCard
                 key={entry.key}

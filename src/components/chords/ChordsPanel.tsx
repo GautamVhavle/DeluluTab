@@ -16,7 +16,8 @@ import { useAppStore, type Chord, type Shortcut } from '@/store/useAppStore'
 import { ShortcutIcon } from '@/components/shortcuts/ShortcutIcon'
 import { Button } from '@/components/common/button'
 import { Input } from '@/components/common/input'
-import { Row, Section, SliderRow } from '@/components/settings/SettingsUi'
+import { More, Row, Section, SliderRow } from '@/components/settings/SettingsUi'
+import { ChordLesson } from './ChordLesson'
 
 /** Click "Change key", press the key you want. Keys that can't work (letters, browser shortcuts) say why. */
 function TriggerKey() {
@@ -52,7 +53,7 @@ function TriggerKey() {
 
   return (
     <div className="grid gap-2.5">
-      <Row label="Trigger key" hint="Press it, then type a code, like a cheat code.">
+      <Row label="Trigger key">
         <div className="flex items-center gap-2">
           <kbd aria-label={`Current trigger: ${triggerLabel(trigger)}`} className="min-w-9 rounded-md border bg-secondary/70 px-2 py-1 text-center font-mono text-sm">{triggerLabel(trigger)}</kbd>
           <Button size="sm" variant={capturing ? 'default' : 'secondary'} onClick={() => { setCapturing((c) => !c); setError('') }}>
@@ -91,23 +92,13 @@ export function ChordsPanel() {
 
   return (
     <div className="grid gap-7">
+      <ChordLesson />
+
       <Section title="Trigger">
         <TriggerKey />
       </Section>
 
-      <Section title="Typing speed" hint="How long you can pause between keys before the chord resets.">
-        <SliderRow
-          label="Time limit"
-          value={windowMs}
-          min={MIN_CHORD_WINDOW_MS}
-          max={MAX_CHORD_WINDOW_MS}
-          step={CHORD_WINDOW_STEP_MS}
-          format={(v) => `${(v / 1000).toFixed(1)} s`}
-          onChange={(chordWindowMs) => updateSettings({ chordWindowMs })}
-        />
-      </Section>
-
-      <Section title="Your chords" hint={`Type a code and press Enter (or click away) to save. Clear it to remove the chord. Up to ${MAX_CHORD_LENGTH} letters or digits.`}>
+      <Section title="Your chords">
         {shortcuts.length === 0 ? (
           <p className="text-sm text-muted-foreground">Add a shortcut first, or create a chord for a new site below.</p>
         ) : (
@@ -124,9 +115,22 @@ export function ChordsPanel() {
         )}
       </Section>
 
-      <Section title="Add a chord for a new site" hint="Creates a shortcut and gives it a chord in one step.">
+      <More label="Timing and a new site">
+      <Section title="Typing speed">
+        <SliderRow
+          label="Time limit"
+          value={windowMs}
+          min={MIN_CHORD_WINDOW_MS}
+          max={MAX_CHORD_WINDOW_MS}
+          step={CHORD_WINDOW_STEP_MS}
+          format={(v) => `${(v / 1000).toFixed(1)} s`}
+          onChange={(chordWindowMs) => updateSettings({ chordWindowMs })}
+        />
+      </Section>
+      <Section title="New site">
         <NewChordForm />
       </Section>
+      </More>
     </div>
   )
 }

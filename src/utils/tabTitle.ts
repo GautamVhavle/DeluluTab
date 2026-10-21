@@ -17,11 +17,12 @@ export function formatTime(now: Date, format: ClockFormat) {
   }).format(now)
 }
 
-export function tabTitle(options: { mode: TabTitleMode; custom: string; now: Date; format: ClockFormat }): string {
+export function tabTitle(options: { mode: TabTitleMode; custom: string; now: Date; format: ClockFormat; name?: string }): string {
   const { mode, custom, now, format } = options
-  if (mode === 'time') return `${formatTime(now, format)} - ${APP_NAME}`
-  if (mode === 'custom') return cleanTitle(custom) || APP_NAME
-  return APP_NAME
+  const name = options.name?.trim() || APP_NAME
+  if (mode === 'time') return `${formatTime(now, format)} - ${name}`
+  if (mode === 'custom') return cleanTitle(custom) || name
+  return name
 }
 
 /** Milliseconds until the clock's minute changes (plus a hair so we land just after it). */

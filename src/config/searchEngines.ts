@@ -1,5 +1,7 @@
 import type { IconType } from 'react-icons'
-import { FaGoogle, FaLeaf, FaMicrosoft, FaShieldHalved } from 'react-icons/fa6'
+import { FaGoogle, FaShieldHalved } from 'react-icons/fa6'
+import { SiBrave } from 'react-icons/si'
+import { BingMark } from '@/components/common/BrandMarks'
 import type { SearchEngineId } from '@/types'
 import { aiProviderById } from './aiProviders'
 
@@ -22,8 +24,8 @@ const ai = (id: 'perplexity' | 'chatgpt' | 'claude'): Pick<SearchEngine, 'name' 
 export const SEARCH_ENGINES: SearchEngine[] = [
   { id: 'google', site: 'https://www.google.com/', name: 'Google', group: 'web', icon: FaGoogle, url: (s) => `https://www.google.com/search?q=${q(s)}` },
   { id: 'duckduckgo', site: 'https://duckduckgo.com/', name: 'DuckDuckGo', group: 'web', icon: FaShieldHalved, url: (s) => `https://duckduckgo.com/?q=${q(s)}` },
-  { id: 'bing', site: 'https://www.bing.com/', name: 'Bing', group: 'web', icon: FaMicrosoft, url: (s) => `https://www.bing.com/search?q=${q(s)}` },
-  { id: 'ecosia', site: 'https://www.ecosia.org/', name: 'Ecosia', group: 'web', icon: FaLeaf, url: (s) => `https://www.ecosia.org/search?q=${q(s)}` },
+  { id: 'bing', site: 'https://www.bing.com/', name: 'Bing', group: 'web', icon: BingMark, url: (s) => `https://www.bing.com/search?q=${q(s)}` },
+  { id: 'brave', site: 'https://search.brave.com/', name: 'Brave', group: 'web', icon: SiBrave, url: (s) => `https://search.brave.com/search?q=${q(s)}` },
   { id: 'perplexity', group: 'ai', ...ai('perplexity') },
   { id: 'chatgpt', group: 'ai', ...ai('chatgpt') },
   { id: 'claude', group: 'ai', ...ai('claude') },

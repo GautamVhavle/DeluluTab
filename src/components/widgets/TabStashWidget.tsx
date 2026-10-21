@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { Archive, ChevronRight, Edit, ExternalLink, MoreHorizontal, Restore, RestoreWindow, Trash2, X } from '@/components/common/icons'
-import { captureCurrentWindow, closeTabs, defaultStashName, hasTabsApi, MAX_STASH_GROUPS, MAX_STASH_NAME, restoreTabs } from '@/services/stash'
+import { Archive, ArrowLeft, ChevronRight, Edit, ExternalLink, MoreHorizontal, Pencil, Plus, Restore, RestoreWindow, Trash2, X } from '@/components/common/icons'
+import { captureCurrentWindow, closeTabs, defaultStashName, hasTabsApi, MAX_STASH_GROUPS, MAX_STASH_NAME, MAX_TABS_PER_GROUP, restoreTabs, stashTabFromInput } from '@/services/stash'
 import { timeAgo } from '@/services/news'
 import { hostnameOf } from '@/utils/url'
 import { cn } from '@/utils/cn'
@@ -31,19 +30,33 @@ function useStashActions() {
   }
 
   async function save(name: string, closeAfter: boolean) {
-    if (!hasTabsApi()) return say('Saving tabs works in the installed extension.', 'error')
-    if (stashes.length >= MAX_STASH_GROUPS) return say(`You have ${MAX_STASH_GROUPS} saved groups. Delete one to save another.`, 'error')
+    if (!hasTabsApi()) {
+      say('Saving open tabs works in the installed extension. You can still add links by hand.', 'error')
+      return null
+    }
+    if (stashes.length >= MAX_STASH_GROUPS) {
+      say(`You have ${MAX_STASH_GROUPS} saved groups. Delete one to save another.`, 'error')
+      return null
+    }
     setBusy(true)
     try {
       const { tabs, tabIds, skipped } = await captureCurrentWindow()
-      if (tabs.length === 0) return say(skipped ? 'This window only has browser pages, which can’t be saved.' : 'There are no tabs to save.', 'error')
+      if (tabs.length === 0) {
+        say(skipped ? 'This window only has browser pages, which can’t be saved.' : 'There are no tabs to save.', 'error')
+        return null
+      }
       const finalName = name.trim() || defaultStashName()
       const id = addStash(finalName, tabs)
-      if (!id) return say('Those tabs couldn’t be saved.', 'error')
+      if (!id) {
+        say('Those tabs couldn’t be saved.', 'error')
+        return null
+      }
       if (closeAfter) await closeTabs(tabIds)
       say(`Saved ${plural(tabs.length, 'tab')} as “${finalName.slice(0, MAX_STASH_NAME)}”.${closeAfter ? ' Tabs closed.' : ''}`)
+      return id
     } catch {
       say('Couldn’t read this window’s tabs. Try again.', 'error')
+      return null
     } finally {
       setBusy(false)
     }
@@ -69,17 +82,25 @@ function Message({ message }: { message: { text: string; tone: 'ok' | 'error' } 
   )
 }
 
-function GroupRow({ group, onRestore }: { group: StashGroup; onRestore: (g: StashGroup, newWindow: boolean) => void }) {
-  const removeStash = useAppStore((s) => s.removeStash)
+function OpenList({ group, onBack, onRestore }: { group: StashGroup; onBack: () => void; onRestore: (g: StashGroup, newWindow: boolean) => void }) {
   const renameStash = useAppStore((s) => s.renameStash)
+  const removeStash = useAppStore((s) => s.removeStash)
+  const addStashTab = useAppStore((s) => s.addStashTab)
+  const updateStashTab = useAppStore((s) => s.updateStashTab)
   const removeStashTab = useAppStore((s) => s.removeStashTab)
-  const [open, setOpen] = useState(false)
   const [renaming, setRenaming] = useState(false)
   const [name, setName] = useState(group.name)
   const [confirm, setConfirm] = useState<'restore' | 'delete' | null>(null)
+  const [editing, setEditing] = useState<number | null>(null)
+  const [draftTitle, setDraftTitle] = useState('')
+  const [draftUrl, setDraftUrl] = useState('')
+  const [link, setLink] = useState('')
+  const [linkTitle, setLinkTitle] = useState('')
+  const [linkError, setLinkError] = useState('')
   const renameInput = useRef<HTMLInputElement>(null)
   const focusRenameNext = useRef(false)
 
+  useEffect(() => setName(group.name), [group.name])
   useEffect(() => {
     if (!confirm) return
     const id = setTimeout(() => setConfirm(null), 4000)
@@ -88,6 +109,7 @@ function GroupRow({ group, onRestore }: { group: StashGroup; onRestore: (g: Stas
 
   const needsConfirm = group.tabs.length > CONFIRM_ABOVE
   const doRestore = () => {
+    if (group.tabs.length === 0) return setLinkError('Add a link before restoring this list.')
     if (needsConfirm && confirm !== 'restore') return setConfirm('restore')
     setConfirm(null)
     onRestore(group, false)
@@ -99,34 +121,48 @@ function GroupRow({ group, onRestore }: { group: StashGroup; onRestore: (g: Stas
     setRenaming(false)
   }
 
+  function beginEdit(index: number) {
+    const tab = group.tabs[index]
+    if (!tab) return
+    setEditing(index)
+    setDraftTitle(tab.title)
+    setDraftUrl(tab.url)
+    setLinkError('')
+  }
+
+  function write(index: number | null, url: string, title: string) {
+    const tab = stashTabFromInput(url, title)
+    if (!tab) return setLinkError('Use a web address, like github.com.')
+    if (group.tabs.some((item, i) => i !== index && item.url === tab.url)) return setLinkError('That link is already in this list.')
+    if (index === null) {
+      if (group.tabs.length >= MAX_TABS_PER_GROUP) return setLinkError(`A list can hold ${MAX_TABS_PER_GROUP} links.`)
+      addStashTab(group.id, tab)
+      setLink('')
+      setLinkTitle('')
+    } else {
+      updateStashTab(group.id, index, tab)
+      setEditing(null)
+    }
+    setLinkError('')
+  }
+
   return (
-    <li className="rounded-lg border bg-background/30">
-      <div className="flex items-center gap-1 pr-1">
+    <div className="flex min-h-0 flex-1 flex-col gap-2">
+      <div className="flex items-center gap-1">
+        <button type="button" onClick={onBack} aria-label="Back to lists" className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">
+          <ArrowLeft className="h-3.5 w-3.5" />
+        </button>
         {renaming ? (
-          <form onSubmit={submitRename} className="flex flex-1 items-center gap-1 p-1.5">
-            <Input ref={renameInput} autoFocus value={name} maxLength={MAX_STASH_NAME} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Escape' && (e.stopPropagation(), setRenaming(false), setName(group.name))} aria-label="Group name" className="h-7" />
+          <form onSubmit={submitRename} className="flex min-w-0 flex-1 items-center gap-1">
+            <Input ref={renameInput} autoFocus value={name} maxLength={MAX_STASH_NAME} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Escape' && (e.stopPropagation(), setRenaming(false), setName(group.name))} aria-label="List name" className="h-7" />
             <Button type="submit" size="sm" variant="secondary" className="h-7">Save</Button>
           </form>
         ) : (
-          <button
-            type="button"
-            onClick={() => setOpen((o) => !o)}
-            aria-expanded={open}
-            aria-label={`${group.name}, ${plural(group.tabs.length, 'tab')}`}
-            className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left outline-none hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <ChevronRight className={cn('h-3 w-3 shrink-0 text-muted-foreground transition-transform', open && 'rotate-90')} aria-hidden />
-            <span className="min-w-0">
-              <span className="block truncate text-sm font-medium">{group.name}</span>
-              <span className="block text-[11px] text-muted-foreground">{plural(group.tabs.length, 'tab')} · {timeAgo(group.createdAt)}</span>
-            </span>
-          </button>
+          <p className="min-w-0 flex-1 truncate text-sm font-medium">{group.name}</p>
         )}
-
         <Button size="sm" variant={confirm === 'restore' ? 'default' : 'secondary'} onClick={doRestore} className="h-7 shrink-0 px-2.5 text-xs" aria-label={`Restore ${group.name}`}>
           <Restore className="h-3 w-3" /> {confirm === 'restore' ? `Open ${group.tabs.length}?` : 'Restore'}
         </Button>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button type="button" aria-label={`Options for ${group.name}`} className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">
@@ -135,7 +171,6 @@ function GroupRow({ group, onRestore }: { group: StashGroup; onRestore: (g: Stas
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            // Closing the menu hands focus back to its button, which would undo "Rename"'s autofocus.
             onCloseAutoFocus={(e) => {
               if (!focusRenameNext.current) return
               focusRenameNext.current = false
@@ -148,47 +183,75 @@ function GroupRow({ group, onRestore }: { group: StashGroup; onRestore: (g: Stas
             <DropdownMenuItem onSelect={() => { setName(group.name); setRenaming(true); focusRenameNext.current = true }}><Edit /> Rename</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem destructive onSelect={() => (confirm === 'delete' ? removeStash(group.id) : setConfirm('delete'))}>
-              <Trash2 /> {confirm === 'delete' ? 'Click again to delete' : 'Delete group'}
+              <Trash2 /> {confirm === 'delete' ? 'Click again to delete' : 'Delete list'}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.ul
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            className="overflow-hidden border-t"
-            aria-label={`Tabs in ${group.name}`}
-          >
-            {group.tabs.map((tab, i) => (
-              <li key={`${tab.url}-${i}`} className="group flex items-center gap-2 px-2 py-1 text-xs">
-                <a href={tab.url} target="_blank" rel="noopener noreferrer" className="flex min-w-0 flex-1 items-baseline gap-2 rounded outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">
-                  <span className="truncate">{tab.title}</span>
-                  <span className="shrink-0 text-[10px] text-muted-foreground">{hostnameOf(tab.url)}</span>
-                  <ExternalLink className="h-2.5 w-2.5 shrink-0 opacity-0 group-hover:opacity-60" aria-hidden />
-                </a>
-                <button type="button" aria-label={`Remove ${tab.title} from ${group.name}`} onClick={() => removeStashTab(group.id, i)} className="rounded p-0.5 text-muted-foreground opacity-0 outline-none hover:text-red-500 focus-visible:opacity-100 group-hover:opacity-100">
-                  <X className="h-3 w-3" />
-                </button>
-              </li>
-            ))}
-          </motion.ul>
-        )}
-      </AnimatePresence>
-    </li>
+      <form
+        onSubmit={(e) => { e.preventDefault(); write(null, link, linkTitle) }}
+        className="grid grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)_auto] gap-1.5"
+      >
+        <Input value={linkTitle} onChange={(e) => setLinkTitle(e.target.value)} placeholder="Name" aria-label="Link name" className="h-8" autoComplete="off" />
+        <Input value={link} onChange={(e) => { setLink(e.target.value); setLinkError('') }} placeholder="github.com" aria-label="Link address" className="h-8" inputMode="url" autoComplete="off" spellCheck={false} />
+        <Button type="submit" size="sm" className="h-8 shrink-0 px-2.5" aria-label="Add link"><Plus className="h-3 w-3" /> Add</Button>
+      </form>
+      {linkError && <p role="alert" className="text-xs text-red-500">{linkError}</p>}
+
+      {group.tabs.length === 0 ? (
+        <p className="text-xs text-muted-foreground">No links yet. Add one above, then restore opens them together.</p>
+      ) : (
+        <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto" aria-label={`Links in ${group.name}`}>
+          {group.tabs.map((tab, index) => (
+            <li key={`${tab.url}-${index}`} className="rounded-lg border bg-background/40 px-2 py-1.5">
+              {editing === index ? (
+                <form onSubmit={(e) => { e.preventDefault(); write(index, draftUrl, draftTitle) }} className="grid gap-1.5">
+                  <Input value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} aria-label={`Name for link ${index + 1}`} className="h-7" />
+                  <Input value={draftUrl} onChange={(e) => setDraftUrl(e.target.value)} aria-label={`Address for link ${index + 1}`} className="h-7" inputMode="url" spellCheck={false} />
+                  <div className="flex justify-end gap-1">
+                    <Button type="button" size="sm" variant="ghost" className="h-7" onClick={() => setEditing(null)}>Cancel</Button>
+                    <Button type="submit" size="sm" variant="secondary" className="h-7">Save</Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <a href={tab.url} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 rounded outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">
+                    <span className="flex items-center gap-1.5 text-xs font-medium">
+                      <span className="truncate">{tab.title}</span>
+                      <ExternalLink className="h-2.5 w-2.5 shrink-0 text-muted-foreground" aria-hidden />
+                    </span>
+                    <span className="block truncate text-[10px] text-muted-foreground">{hostnameOf(tab.url)}</span>
+                  </a>
+                  <button type="button" aria-label={`Edit ${tab.title}`} onClick={() => beginEdit(index)} className="grid h-6 w-6 shrink-0 place-items-center rounded text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                  <button type="button" aria-label={`Remove ${tab.title}`} onClick={() => removeStashTab(group.id, index)} className="grid h-6 w-6 shrink-0 place-items-center rounded text-muted-foreground outline-none hover:bg-accent hover:text-red-500 focus-visible:ring-2 focus-visible:ring-ring">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }
 
 export function TabStashWidget({ mode }: WidgetProps) {
   const stashes = useAppStore((s) => s.stashes)
+  const createStash = useAppStore((s) => s.createStash)
   const { save, restore, message, busy } = useStashActions()
   const [name, setName] = useState('')
   const [closeAfter, setCloseAfter] = useState(false)
+  const [openId, setOpenId] = useState<string | null>(null)
   const available = hasTabsApi()
+  const open = stashes.find((group) => group.id === openId) ?? null
+
+  useEffect(() => {
+    if (openId && !open) setOpenId(null)
+  }, [openId, open])
 
   if (mode === 'compact') {
     return (
@@ -210,43 +273,69 @@ export function TabStashWidget({ mode }: WidgetProps) {
     )
   }
 
+  function startList(e: FormEvent) {
+    e.preventDefault()
+    if (stashes.length >= MAX_STASH_GROUPS) return
+    const id = createStash(name)
+    if (!id) return
+    setName('')
+    setOpenId(id)
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col gap-2">
-      <div className="flex items-center justify-between gap-2">
-        <h3 className="flex items-center gap-2 text-sm font-medium text-muted-foreground"><Archive aria-hidden /> Tab stash{stashes.length > 0 && <span className="text-xs font-normal">· {plural(stashes.length, 'group')}</span>}</h3>
-        <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <input type="checkbox" checked={closeAfter} onChange={(e) => setCloseAfter(e.target.checked)} className="h-3 w-3 accent-primary" />
-          Close tabs after saving
-        </label>
-      </div>
+      {open ? (
+        <OpenList group={open} onBack={() => setOpenId(null)} onRestore={(grp, newWindow) => void restore(grp, newWindow)} />
+      ) : (
+        <>
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="flex items-center gap-2 text-sm font-medium text-muted-foreground"><Archive aria-hidden /> Tab stash{stashes.length > 0 && <span className="text-xs font-normal">· {plural(stashes.length, 'list')}</span>}</h3>
+            {available && (
+              <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <input type="checkbox" checked={closeAfter} onChange={(e) => setCloseAfter(e.target.checked)} className="h-3 w-3 accent-primary" />
+                Close tabs after saving
+              </label>
+            )}
+          </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          void save(name, closeAfter).then(() => setName(''))
-        }}
-        className="flex gap-2"
-      >
-        <Input value={name} maxLength={MAX_STASH_NAME} onChange={(e) => setName(e.target.value)} placeholder="Name this session (optional)" aria-label="Session name" className="h-8" autoComplete="off" />
-        <Button type="submit" size="sm" disabled={busy || !available} className="shrink-0">Save tabs</Button>
-      </form>
+          <form onSubmit={startList} className="flex gap-2">
+            <Input value={name} maxLength={MAX_STASH_NAME} onChange={(e) => setName(e.target.value)} placeholder="Name this list" aria-label="List name" className="h-8" autoComplete="off" />
+            <Button type="submit" size="sm" disabled={stashes.length >= MAX_STASH_GROUPS} className="shrink-0">New list</Button>
+          </form>
+          {available && (
+            <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => void save(name, closeAfter).then((id) => { if (id) { setName(''); setOpenId(id) } })}>
+              Save open tabs
+            </Button>
+          )}
 
-      {/* One line of feedback, shown only when there is something to say, so the card stays compact. */}
-      {message ? (
-        <Message message={message} />
-      ) : !available ? (
-        <p className="text-xs text-muted-foreground">Saving and restoring tabs works in the installed extension.</p>
-      ) : stashes.length === 0 ? (
-        <p className="text-xs text-muted-foreground">Nothing saved yet. Save this window’s tabs to bring them back later.</p>
-      ) : null}
+          {message ? (
+            <Message message={message} />
+          ) : stashes.length === 0 ? (
+            <p className="text-xs text-muted-foreground">Start a list, then add the links you want to open together.{available ? ' Or save the tabs in this window.' : ''}</p>
+          ) : null}
 
-      {stashes.length > 0 && (
-        <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto" aria-label="Saved tab groups">
-          {stashes.map((g) => (
-            <GroupRow key={g.id} group={g} onRestore={(grp, newWindow) => void restore(grp, newWindow)} />
-          ))}
-        </ul>
+          {stashes.length > 0 && (
+            <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto" aria-label="Saved tab lists">
+              {stashes.map((group) => (
+                <li key={group.id}>
+                  <button
+                    type="button"
+                    onClick={() => setOpenId(group.id)}
+                    className="flex w-full items-center gap-2 rounded-lg border bg-background/30 px-2 py-1.5 text-left outline-none hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">{group.name}</span>
+                      <span className="block text-[11px] text-muted-foreground">{plural(group.tabs.length, 'link')} · {timeAgo(group.createdAt)}</span>
+                    </span>
+                    <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
+      {open && message ? <Message message={message} /> : null}
     </div>
   )
 }

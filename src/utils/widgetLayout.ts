@@ -3,6 +3,7 @@
  * Pixel size comes from the grid component, so a saved layout stays valid when the window resizes.
  */
 import { WIDGET_CATALOG, catalogByKey } from '@/config/widgetCatalog'
+import { WIDGET_TEMPLATES } from '@/config/widgetTemplates'
 import type { CustomWidget, GridBreakpoint, LayoutMode, ModeLayouts, WidgetKey, WidgetLayouts, WidgetPlacement, WidgetsState } from '@/types'
 
 export const MAX_CUSTOM_WIDGETS = 8
@@ -29,48 +30,48 @@ type Box = Pick<WidgetPlacement, 'x' | 'y' | 'w' | 'h'>
 const HOME: Record<LayoutMode, Record<GridBreakpoint, Partial<Record<WidgetKey, Box>>>> = {
   detailed: {
     lg: {
-      clock: { x: 0, y: 0, w: 7, h: 7 },
-      weather: { x: 7, y: 0, w: 5, h: 7 },
-      search: { x: 0, y: 7, w: 12, h: 3 },
-      quickApps: { x: 0, y: 10, w: 7, h: 6 },
-      news: { x: 7, y: 10, w: 5, h: 6 },
+      clock: { x: 0, y: 0, w: 7, h: 6 },
+      weather: { x: 7, y: 0, w: 5, h: 6 },
+      search: { x: 0, y: 6, w: 12, h: 3 },
+      quickApps: { x: 0, y: 9, w: 7, h: 5 },
+      quotes: { x: 7, y: 9, w: 5, h: 5 },
     },
     md: {
       clock: { x: 0, y: 0, w: 5, h: 6 },
       weather: { x: 5, y: 0, w: 3, h: 6 },
       search: { x: 0, y: 6, w: 8, h: 3 },
       quickApps: { x: 0, y: 9, w: 8, h: 5 },
-      news: { x: 0, y: 14, w: 8, h: 8 },
+      quotes: { x: 0, y: 14, w: 8, h: 8 },
     },
     sm: {
       clock: { x: 0, y: 0, w: 4, h: 6 },
       weather: { x: 0, y: 6, w: 4, h: 6 },
       search: { x: 0, y: 12, w: 4, h: 3 },
       quickApps: { x: 0, y: 15, w: 4, h: 6 },
-      news: { x: 0, y: 21, w: 4, h: 8 },
+      quotes: { x: 0, y: 21, w: 4, h: 8 },
     },
   },
   compact: {
     lg: {
-      clock: { x: 0, y: 0, w: 8, h: 4 },
-      weather: { x: 8, y: 0, w: 4, h: 4 },
-      search: { x: 0, y: 4, w: 12, h: 2 },
-      quickApps: { x: 0, y: 6, w: 6, h: 6 },
-      news: { x: 6, y: 6, w: 6, h: 6 },
+      clock: { x: 0, y: 0, w: 8, h: 6 },
+      weather: { x: 8, y: 0, w: 4, h: 6 },
+      search: { x: 0, y: 6, w: 12, h: 3 },
+      quickApps: { x: 0, y: 9, w: 6, h: 5 },
+      quotes: { x: 6, y: 9, w: 6, h: 5 },
     },
     md: {
-      clock: { x: 0, y: 0, w: 5, h: 4 },
-      weather: { x: 5, y: 0, w: 3, h: 4 },
-      search: { x: 0, y: 4, w: 8, h: 3 },
-      quickApps: { x: 0, y: 7, w: 8, h: 5 },
-      news: { x: 0, y: 12, w: 8, h: 3 },
+      clock: { x: 0, y: 0, w: 5, h: 8 },
+      weather: { x: 5, y: 0, w: 3, h: 8 },
+      search: { x: 0, y: 8, w: 8, h: 3 },
+      quickApps: { x: 0, y: 11, w: 8, h: 4 },
+      quotes: { x: 0, y: 15, w: 8, h: 4 },
     },
     sm: {
-      clock: { x: 0, y: 0, w: 4, h: 4 },
-      weather: { x: 0, y: 4, w: 4, h: 4 },
-      search: { x: 0, y: 8, w: 4, h: 3 },
-      quickApps: { x: 0, y: 11, w: 4, h: 5 },
-      news: { x: 0, y: 16, w: 4, h: 3 },
+      clock: { x: 0, y: 0, w: 4, h: 6 },
+      weather: { x: 0, y: 6, w: 4, h: 5 },
+      search: { x: 0, y: 11, w: 4, h: 3 },
+      quickApps: { x: 0, y: 14, w: 4, h: 5 },
+      quotes: { x: 0, y: 19, w: 4, h: 6 },
     },
   },
   focus: {
@@ -92,11 +93,8 @@ const HOME: Record<LayoutMode, Record<GridBreakpoint, Partial<Record<WidgetKey, 
   },
 }
 
-export const CUSTOM_WIDGET_STARTER = {
-  html: '<div class="box">\n  <p>Make something delulu.</p>\n</div>\n',
-  css: '.box {\n  height: 100%;\n  display: grid;\n  place-items: center;\n  text-align: center;\n  padding: 1rem;\n}\n.box p {\n  margin: 0;\n  font-size: 1.25rem;\n}\n',
-  js: '// Runs in a sandbox. It cannot read your notes, tabs, or the rest of DeluluTab.\n',
-}
+const lineTemplate = WIDGET_TEMPLATES[0]
+export const CUSTOM_WIDGET_STARTER = { html: lineTemplate.html, css: lineTemplate.css, js: lineTemplate.js }
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 
@@ -135,7 +133,9 @@ export function gridLabel(id: string, custom: CustomWidget[]): string {
 
 export function visibleGridIds(mode: LayoutMode, widgets: WidgetsState, custom: CustomWidget[]): string[] {
   const keys = mode === 'focus' ? FOCUS_KEYS : BUILTIN_WIDGETS.map((w) => w.key)
-  const builtin = keys.filter((key) => widgets[key])
+  // Core widgets cannot be turned off. Optional ones appear only while their switch is on.
+  // News is the full-width rail under the grid, not a cell in it.
+  const builtin = keys.filter((key) => key !== 'news' && (!catalogByKey(key).optional || widgets[key]))
   if (mode === 'focus') return builtin
   return [...builtin, ...custom.filter((w) => w.enabled).map((w) => customGridId(w.id))]
 }

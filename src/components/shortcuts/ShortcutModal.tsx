@@ -13,6 +13,7 @@ import {
 } from '@/components/common/dialog'
 import { Input } from '@/components/common/input'
 import { ICONS, ICON_NAMES, ShortcutIcon, isImageUrl } from './ShortcutIcon'
+import { ChordInput, chordError, saveChord, ShortcutChord } from './ChordField'
 
 type IconMode = 'auto' | 'preset' | 'custom'
 
@@ -58,6 +59,7 @@ function ShortcutForm({
   )
   const [preset, setPreset] = useState(initialIcon in ICONS ? initialIcon : 'globe')
   const [customIcon, setCustomIcon] = useState(isImageUrl(initialIcon) ? initialIcon : '')
+  const [chord, setChord] = useState('')
   const [error, setError] = useState('')
 
   const normalized = normalizeUrl(url)
@@ -74,8 +76,13 @@ function ShortcutForm({
       icon: previewIcon,
       folderId: folderId || null,
     }
+    if (!shortcut && chord) {
+      const problem = chordError(chord, null)
+      if (problem) return setError(problem)
+    }
+    const id = shortcut ? shortcut.id : addShortcut(data)
     if (shortcut) updateShortcut(shortcut.id, data)
-    else addShortcut(data)
+    if (!shortcut && chord) saveChord(id, chord)
     onDone()
   }
 
@@ -83,7 +90,7 @@ function ShortcutForm({
     <form onSubmit={submit} className="grid gap-4">
       <DialogHeader>
         <DialogTitle>{shortcut ? 'Edit shortcut' : 'Add shortcut'}</DialogTitle>
-        <DialogDescription>Saved instantly and synced across your Chrome devices.</DialogDescription>
+        <DialogDescription>The app and its chord are saved together. Press the trigger, then the code, to open it.</DialogDescription>
       </DialogHeader>
 
       <div className="grid gap-1.5">
@@ -187,6 +194,8 @@ function ShortcutForm({
           ))}
         </select>
       </div>
+
+      {shortcut ? <ShortcutChord shortcutId={shortcut.id} /> : <ChordInput value={chord} onChange={setChord} />}
 
       {error && <p role="alert" className="text-sm text-red-500">{error}</p>}
 

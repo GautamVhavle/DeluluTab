@@ -1,9 +1,10 @@
 import { useEffect, useState, type CSSProperties } from 'react'
-import { dateLabel, greetingFor, timeParts } from '@/utils/clock'
-import { cn } from '@/utils/cn'
+import { dateLabel, timeParts } from '@/utils/clock'
+import { Greeting } from './Greeting'
 import { useAppStore } from '@/store/useAppStore'
 import type { WidgetProps } from '../types'
 import { ClockControls } from './ClockControls'
+import { useClockLook } from './useClockLook'
 import { useNow } from './useNow'
 
 /** Long enough for the whole flip (see .flip-flap-* in index.css) to finish before the card settles. */
@@ -49,7 +50,13 @@ export function FlipClock({ mode }: WidgetProps) {
   const now = useNow(showSeconds)
   const t = timeParts(now, { format, padHour: true })
   const label = `${t.main}${showSeconds ? `:${t.second}` : ''} ${t.period}`.trim()
-  const style = { '--flip-h': SIZE[mode] } as CSSProperties
+  const look = useClockLook()
+  const style = {
+    '--flip-h': SIZE[mode],
+    '--flip-weight': look.weightValue,
+    '--flip-font': look.fontStack,
+    ...(look.style?.color ? { '--flip-ink': look.style.color } : {}),
+  } as CSSProperties
 
   const cards = (
     <div role="timer" aria-label={label} className="flex items-center gap-1.5" style={style}>
@@ -78,16 +85,16 @@ export function FlipClock({ mode }: WidgetProps) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
         {cards}
-        <p className="text-lg text-muted-foreground">{greetingFor(now.getHours(), userName)}</p>
+        <Greeting now={now} name={userName} className="text-2xl" />
       </div>
     )
   }
   return (
     <div className="group/clock relative flex h-full flex-col justify-center gap-2">
-      <p className="text-sm font-medium text-muted-foreground">{greetingFor(now.getHours(), userName)}</p>
-      <div className={cn('flex items-end justify-between gap-3')}>
+      <div className="flex items-end justify-between gap-3">
         {cards}
       </div>
+      <Greeting now={now} name={userName} className="text-lg" />
       <p className="text-xs text-muted-foreground">{dateLabel(now)}</p>
       <ClockControls />
     </div>

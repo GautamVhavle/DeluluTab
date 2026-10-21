@@ -21,8 +21,15 @@ export interface GithubRepo {
   description: string | null
 }
 
+export interface GithubProfile {
+  name: string
+  location: string
+  avatar: string
+}
+
 export interface GithubActivity {
   username: string
+  profile: GithubProfile
   days: ContributionDay[]
   /** Contributions in the period shown (the last year, or about 90 days for the events fallback). */
   total: number
@@ -32,6 +39,8 @@ export interface GithubActivity {
   /** Set when the repository list couldn't be loaded but the graph could. */
   reposError: string
 }
+
+const EMPTY_PROFILE: GithubProfile = { name: '', location: '', avatar: '' }
 
 export class GithubError extends Error {
   constructor(message: string, readonly kind: 'not-found' | 'rate-limit' | 'network' | 'other') {
@@ -106,7 +115,25 @@ export async function fetchRepos(username: string, signal?: AbortSignal): Promis
     }))
 }
 
+async function fetchProfile(username: string, signal?: AbortSignal): Promise<GithubProfile> {
+  try {
+    const user = await getJson(`https://api.github.com/users/${encodeURIComponent(username)}`, signal)
+    const avatar = typeof user?.avatar_url === 'string' && user.avatar_url.startsWith('https://') ? user.avatar_url : ''
+    return {
+      name: typeof user?.name === 'string' ? user.name.trim() : '',
+      location: typeof user?.location === 'string' ? user.location.trim() : '',
+      avatar,
+    }
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') throw err
+    if (err instanceof GithubError && err.kind === 'not-found') throw err
+    return EMPTY_PROFILE
+  }
+}
+
 export async function fetchActivity(username: string, signal?: AbortSignal): Promise<GithubActivity> {
+  const profileP = fetchProfile(username, signal)
+  profileP.catch(() => {})
   const reposP = fetchRepos(username, signal).then(
     (repos) => ({ repos, error: '' }),
     (err) => {
@@ -128,8 +155,8 @@ export async function fetchActivity(username: string, signal?: AbortSignal): Pro
     graph = await fetchFromEvents(username, signal)
     source = 'events'
   }
-  const { repos, error } = await reposP
-  return { username, days: graph.days, total: graph.total, source, repos, reposError: error }
+  const [{ repos, error }, profile] = await Promise.all([reposP, profileP])
+  return { username, profile, days: graph.days, total: graph.total, source, repos, reposError: error }
 }
 
 // ------------------------------------------------------------------ presentation helpers

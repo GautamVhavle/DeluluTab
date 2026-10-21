@@ -42,17 +42,32 @@ export function blendTones(parts: { tone: Tone; weight: number }[]): Tone {
   return { brightness: brightnessOf(r, g, b), color: toHex(r, g, b) }
 }
 
+/** Above this, a wallpaper reads as light, so type sitting directly on it should be dark. */
+export const LIGHT_SURFACE = 0.56
+
+export function surfaceFor(brightness: number): 'light' | 'dark' {
+  return brightness > LIGHT_SURFACE ? 'light' : 'dark'
+}
+
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
+
+/** Dark tint on a living gradient. The slider is 0–60; zero leaves the colour alone, sixty is a deep veil. */
+export function gradientDimAlpha(dim: number) {
+  return (clamp(dim, 0, 60) / 60) * 0.78
+}
 
 /**
  * Adaptive overlay: brighter backgrounds get a heavier dark scrim in dark mode, and darker
  * backgrounds get a heavier pale veil in light mode, so the theme's text color always has contrast.
  * `dim` (0-60) is the user's extra push on top.
  */
-export function scrimFor(tone: Tone, isDark: boolean, dim: number) {
+export function scrimFor(tone: Tone, isDark: boolean, dim: number, gentle = false) {
   const base = isDark ? '#020617' : '#f8fafc'
   const need = isDark ? tone.brightness : 1 - tone.brightness
-  const alpha = clamp(0.2 + 0.5 * need + dim / 100, 0, 0.94)
+  // A living gradient should stay visible. A picture still gets the heavier veil.
+  const alpha = gentle
+    ? clamp(0.08 + 0.28 * need + dim / 160, 0, 0.7)
+    : clamp(0.2 + 0.5 * need + dim / 100, 0, 0.94)
   // A hint of the image's own color keeps the overlay from looking like a flat grey sheet.
   const color = `color-mix(in srgb, ${tone.color} 14%, ${base})`
   return { color, alpha }

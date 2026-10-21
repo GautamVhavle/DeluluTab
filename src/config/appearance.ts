@@ -70,9 +70,9 @@ export function applyAppearance(root: HTMLElement, options: { fontScale: number;
   root.style.fontSize = options.fontScale === 100 ? '' : `${options.fontScale}%`
   if (options.accent && isHexColor(options.accent)) {
     const { primary, foreground } = accentVars(options.accent)
-    root.style.setProperty('--primary', primary)
-    root.style.setProperty('--ring', primary)
-    root.style.setProperty('--primary-foreground', foreground)
+    root.style.setProperty('--primary', `hsl(${primary})`)
+    root.style.setProperty('--ring', `hsl(${primary})`)
+    root.style.setProperty('--primary-foreground', `hsl(${foreground})`)
   } else {
     for (const name of ['--primary', '--ring', '--primary-foreground']) root.style.removeProperty(name)
   }

@@ -1,6 +1,6 @@
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import { Check, X, Zap } from '@/components/common/icons'
-import { resolveChords, type ChordEngineState } from '@/utils/chords'
+import { resolveChords, type ChordEngineState, type ResolvedChord } from '@/utils/chords'
 import { cn } from '@/utils/cn'
 import { useAppStore } from '@/store/useAppStore'
 import { ShortcutIcon } from '@/components/shortcuts/ShortcutIcon'
@@ -40,44 +40,35 @@ const TONES: Record<Tone, { ring: string; glow: string; text: string; bar: strin
 
 const MAX_CANDIDATES = 4
 
-/** Futuristic heads-up display shown while a chord is being typed. */
-export function ChordHud({ state }: { state: ChordEngineState }) {
-  const chords = useAppStore((s) => s.chords)
-  const shortcuts = useAppStore((s) => s.shortcuts)
-  const windowMs = useAppStore((s) => s.settings.chordWindowMs)
-
-  const resolved = resolveChords(chords, shortcuts)
-  const candidates = resolved.filter((c) => c.sequence.startsWith(state.buffer))
-  const matched = resolved.find((c) => c.id === state.matchedId)
-
+/** The card that appears while a chord is typed. The live HUD and the settings preview share it. */
+export function ChordHudCard({
+  state,
+  chords,
+  windowMs,
+  className,
+}: {
+  state: ChordEngineState
+  chords: ResolvedChord[]
+  windowMs: number
+  className?: string
+}) {
+  const candidates = chords.filter((c) => c.sequence.startsWith(state.buffer))
+  const matched = chords.find((c) => c.id === state.matchedId)
   const tone: Tone =
     state.status === 'success' ? 'success' : state.status === 'invalid' ? 'invalid' : state.matchedId ? 'valid' : 'listening'
   const t = TONES[tone]
-  const active = state.status !== 'idle'
 
   return (
-    <MotionConfig reducedMotion="user">
-      <AnimatePresence>
-        {active && (
-          <motion.div
-            key="chord-hud"
-            role="status"
-            aria-live="polite"
-            initial={{ opacity: 0, y: -28, scale: 0.94, filter: 'blur(8px)' }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -18, scale: 0.97, filter: 'blur(4px)' }}
-            transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-            className="pointer-events-none fixed inset-x-0 top-[12vh] z-[60] flex justify-center px-4"
-          >
-            <motion.div
-              animate={tone === 'invalid' ? { x: [0, -9, 9, -6, 6, 0] } : { x: 0 }}
-              transition={{ duration: 0.38 }}
-              className={cn(
-                'relative w-full max-w-md overflow-hidden rounded-2xl border bg-slate-950/85 p-4 text-slate-100 backdrop-blur-xl transition-[border-color,box-shadow] duration-300',
-                t.ring,
-                t.glow,
-              )}
-            >
+    <motion.div
+      animate={tone === 'invalid' ? { x: [0, -9, 9, -6, 6, 0] } : { x: 0 }}
+      transition={{ duration: 0.38 }}
+      className={cn(
+        'relative w-full max-w-md overflow-hidden rounded-2xl border bg-slate-950/85 p-4 text-slate-100 backdrop-blur-xl transition-[border-color,box-shadow] duration-300',
+        t.ring,
+        t.glow,
+        className,
+      )}
+    >
               {/* faint grid + top sheen */}
               <div
                 aria-hidden
@@ -174,7 +165,33 @@ export function ChordHud({ state }: { state: ChordEngineState }) {
                   <div className={cn('h-full w-full rounded-full', t.bar)} />
                 )}
               </div>
-            </motion.div>
+    </motion.div>
+  )
+}
+
+/** Futuristic heads-up display shown while a chord is being typed. */
+export function ChordHud({ state }: { state: ChordEngineState }) {
+  const chords = useAppStore((s) => s.chords)
+  const shortcuts = useAppStore((s) => s.shortcuts)
+  const windowMs = useAppStore((s) => s.settings.chordWindowMs)
+  const resolved = resolveChords(chords, shortcuts)
+  const active = state.status !== 'idle'
+
+  return (
+    <MotionConfig reducedMotion="user">
+      <AnimatePresence>
+        {active && (
+          <motion.div
+            key="chord-hud"
+            role="status"
+            aria-live="polite"
+            initial={{ opacity: 0, y: -28, scale: 0.94, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -18, scale: 0.97, filter: 'blur(4px)' }}
+            transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+            className="pointer-events-none fixed inset-x-0 top-[12vh] z-[60] flex justify-center px-4"
+          >
+            <ChordHudCard state={state} chords={resolved} windowMs={windowMs} />
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,19 +1,25 @@
-import { useState, type KeyboardEvent } from 'react'
+import { lazy, Suspense, useState, type KeyboardEvent } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { IconType } from 'react-icons'
-import { Export, Info, Keyboard, Palette, Widgets } from '@/components/common/icons'
+import { Clock, Export, Info, Keyboard, Palette, Quote, Widgets } from '@/components/common/icons'
 import { cn } from '@/utils/cn'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/common/dialog'
-import { ChordsPanel } from '@/components/chords/ChordsPanel'
-import { AppearancePanel } from './AppearancePanel'
-import { BackupPanel } from './BackupPanel'
-import { GeneralPanel } from './GeneralPanel'
-import { WidgetsPanel } from './WidgetsPanel'
 
-export type SettingsTab = 'general' | 'appearance' | 'widgets' | 'chords' | 'backup'
+const GeneralPanel = lazy(() => import('./GeneralPanel').then((m) => ({ default: m.GeneralPanel })))
+const AppearancePanel = lazy(() => import('./AppearancePanel').then((m) => ({ default: m.AppearancePanel })))
+const ClockPanel = lazy(() => import('./ClockPanel').then((m) => ({ default: m.ClockPanel })))
+const QuotesPanel = lazy(() => import('./QuotesPanel').then((m) => ({ default: m.QuotesPanel })))
+const WidgetsPanel = lazy(() => import('./WidgetsPanel').then((m) => ({ default: m.WidgetsPanel })))
+const ChordsPanel = lazy(() => import('@/components/chords/ChordsPanel').then((m) => ({ default: m.ChordsPanel })))
+const BackupPanel = lazy(() => import('./BackupPanel').then((m) => ({ default: m.BackupPanel })))
+
+export type SettingsTab = 'general' | 'appearance' | 'clock' | 'quotes' | 'widgets' | 'chords' | 'backup'
 
 const TABS: { id: SettingsTab; label: string; title: string; Icon: IconType }[] = [
   { id: 'general', label: 'General', title: 'General & metadata', Icon: Info },
   { id: 'appearance', label: 'Appearance', title: 'Appearance & layout', Icon: Palette },
+  { id: 'clock', label: 'Clock', title: 'Clock', Icon: Clock },
+  { id: 'quotes', label: 'Quotes', title: 'Quotes', Icon: Quote },
   { id: 'widgets', label: 'Widgets', title: 'Widgets', Icon: Widgets },
   { id: 'chords', label: 'Chords', title: 'Chords & shortcuts', Icon: Keyboard },
   { id: 'backup', label: 'Backup & reset', title: 'Backup & reset', Icon: Export },
@@ -73,12 +79,19 @@ export function SettingsDialog({ open, onOpenChange, onOpenBackground }: Props) 
                   tabIndex={active ? 0 : -1}
                   onClick={() => setTab(id)}
                   className={cn(
-                    'flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring',
-                    active ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+                    'relative flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring',
+                    active ? 'text-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
                   )}
                 >
-                  <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                  {label}
+                  {active && (
+                    <motion.span
+                      layoutId="settings-tab"
+                      className="absolute inset-0 rounded-lg bg-background shadow-sm"
+                      transition={{ type: 'spring', stiffness: 500, damping: 38 }}
+                    />
+                  )}
+                  <Icon className="relative h-4 w-4 shrink-0" aria-hidden />
+                  <span className="relative">{label}</span>
                 </button>
               )
             })}
@@ -86,12 +99,26 @@ export function SettingsDialog({ open, onOpenChange, onOpenBackground }: Props) 
         </nav>
 
         <div id="settings-panel" role="tabpanel" aria-labelledby={`settings-tab-${tab}`} className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-7">
-          <h2 className="mb-6 text-lg font-semibold tracking-tight">{current.title}</h2>
-          {tab === 'general' && <GeneralPanel />}
-          {tab === 'appearance' && <AppearancePanel onOpenBackground={onOpenBackground} />}
-          {tab === 'widgets' && <WidgetsPanel onClose={() => onOpenChange(false)} />}
-          {tab === 'chords' && <ChordsPanel />}
-          {tab === 'backup' && <BackupPanel />}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={tab}
+              initial={{ opacity: 0, x: 18 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -14 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <h2 className="mb-6 text-lg font-semibold tracking-tight">{current.title}</h2>
+              <Suspense fallback={<div aria-hidden className="h-40 animate-pulse rounded-2xl bg-secondary/50" />}>
+                {tab === 'general' && <GeneralPanel />}
+                {tab === 'appearance' && <AppearancePanel onOpenBackground={onOpenBackground} />}
+                {tab === 'clock' && <ClockPanel />}
+                {tab === 'quotes' && <QuotesPanel />}
+                {tab === 'widgets' && <WidgetsPanel onClose={() => onOpenChange(false)} />}
+                {tab === 'chords' && <ChordsPanel />}
+                {tab === 'backup' && <BackupPanel />}
+              </Suspense>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </DialogContent>
     </Dialog>

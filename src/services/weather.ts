@@ -96,6 +96,28 @@ export async function fetchForecast(latitude: number, longitude: number, signal?
   }
 }
 
+const named = (value: unknown) => (typeof value === 'string' && value.trim() ? value.trim() : '')
+
+/** City for a point the browser just shared. Null when the lookup has no name. */
+export function placeFromReverse(data: unknown, latitude: number, longitude: number): Place | null {
+  if (!data || typeof data !== 'object') return null
+  const row = data as { city?: unknown; locality?: unknown; principalSubdivision?: unknown; countryName?: unknown }
+  const name = named(row.city) || named(row.locality)
+  if (!name) return null
+  const region = [named(row.principalSubdivision), named(row.countryName)].filter((part) => part && part !== name).join(', ')
+  return { name, region, latitude, longitude }
+}
+
+/** City name for coordinates. The forecast keeps the original point, not the city's centre. */
+export async function placeFromCoords(latitude: number, longitude: number, signal?: AbortSignal): Promise<Place | null> {
+  const params = new URLSearchParams({
+    latitude: String(latitude),
+    longitude: String(longitude),
+    localityLanguage: 'en',
+  })
+  return placeFromReverse(await getJson(`https://api.bigdatacloud.net/data/reverse-geocode-client?${params}`, signal), latitude, longitude)
+}
+
 export async function searchPlaces(query: string, signal?: AbortSignal): Promise<Place[]> {
   const params = new URLSearchParams({ name: query, count: '5', language: 'en', format: 'json' })
   const d = await getJson(`https://geocoding-api.open-meteo.com/v1/search?${params}`, signal)

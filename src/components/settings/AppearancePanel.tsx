@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import type { IconType } from 'react-icons'
-import { Focus, ImageIcon, LayoutGrid, Rows3 } from '@/components/common/icons'
+import { Focus, ImageIcon, LayoutGrid } from '@/components/common/icons'
 import { ACCENT_PRESETS, FONT_SCALE_STEP, MAX_FONT_SCALE, MIN_FONT_SCALE } from '@/config/appearance'
 import { useIsDark } from '@/hooks/use-theme'
 import { cn } from '@/utils/cn'
@@ -8,10 +8,9 @@ import { useAppStore, type LayoutMode } from '@/store/useAppStore'
 import { Button } from '@/components/common/button'
 import { Switch } from '@/components/common/switch'
 import { FontPicker } from './FontPicker'
-import { Row, Section, Segmented, SliderRow } from './SettingsUi'
+import { More, Row, Section, Segmented, SliderRow } from './SettingsUi'
 
-const LAYOUTS: { value: LayoutMode; label: string; hint: string; Icon: IconType }[] = [
-  { value: 'compact', label: 'Compact', hint: 'Tight and minimal', Icon: Rows3 },
+const LAYOUTS: { value: Exclude<LayoutMode, 'compact'>; label: string; hint: string; Icon: IconType }[] = [
   { value: 'detailed', label: 'Detailed', hint: 'Full dashboard grid', Icon: LayoutGrid },
   { value: 'focus', label: 'Focus', hint: 'Clock, search and timer', Icon: Focus },
 ]
@@ -46,17 +45,17 @@ export function AppearancePanel({ onOpenBackground }: { onOpenBackground: () => 
       </Section>
 
       <Section title="Layout">
-        <div role="radiogroup" aria-label="Layout" className="grid grid-cols-3 gap-2">
+        <div role="radiogroup" aria-label="Layout" className="grid grid-cols-2 gap-2">
           {LAYOUTS.map(({ value, label, hint, Icon }) => (
             <button
               key={value}
               type="button"
               role="radio"
-              aria-checked={layout === value}
+              aria-checked={(layout === 'compact' ? 'detailed' : layout) === value}
               onClick={() => updateSettings({ layoutMode: value })}
               className={cn(
                 'grid justify-items-center gap-1 rounded-xl border p-3 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                layout === value ? 'border-primary bg-primary/10' : 'hover:bg-accent/50',
+                (layout === 'compact' ? 'detailed' : layout) === value ? 'border-primary bg-primary/10' : 'hover:bg-accent/50',
               )}
             >
               <Icon className="h-5 w-5" />
@@ -65,10 +64,6 @@ export function AppearancePanel({ onOpenBackground }: { onOpenBackground: () => 
             </button>
           ))}
         </div>
-      </Section>
-
-      <Section title="Font" hint="Applies everywhere. Bundled with the extension, so it works offline.">
-        <FontPicker />
       </Section>
 
       <Section title="Text size">
@@ -88,7 +83,18 @@ export function AppearancePanel({ onOpenBackground }: { onOpenBackground: () => 
         )}
       </Section>
 
-      <Section title="Accent color" hint="Buttons, highlights and focus rings.">
+      <Section title="Background">
+        <Button variant="secondary" onClick={onOpenBackground}>
+          <ImageIcon /> Background
+        </Button>
+      </Section>
+
+      <More label="Font, accent and logos">
+      <Section title="Font">
+        <FontPicker />
+      </Section>
+
+      <Section title="Accent">
         <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Accent color">
           {ACCENT_PRESETS.map((a) => {
             const active = (accent ?? ACCENT_PRESETS[0].hex).toLowerCase() === a.hex
@@ -119,19 +125,12 @@ export function AppearancePanel({ onOpenBackground }: { onOpenBackground: () => 
         </div>
       </Section>
 
-      <Section title="Logos" hint="Shows each site's real logo on shortcuts, AI tools and search engines.">
-        <Row label="Fetch logos from the web" hint="Off: simple symbols only, and no logo requests are made.">
+      <Section title="Logos">
+        <Row label="Site logos" hint="Off uses simple symbols.">
           <Switch aria-label="Fetch logos from the web" checked={showLogos} onCheckedChange={(v) => updateSettings({ showLogos: v })} />
         </Row>
       </Section>
-
-      <Section title="Background" hint="Gradients, Unsplash photos or your own images, with a slideshow.">
-        <div>
-          <Button variant="secondary" onClick={onOpenBackground}>
-            <ImageIcon /> Open background settings
-          </Button>
-        </div>
-      </Section>
+      </More>
     </div>
   )
 }

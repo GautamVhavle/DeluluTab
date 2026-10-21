@@ -79,7 +79,23 @@ if (!manifest.icons?.['128']) fail('a 128x128 icon is required by the Web Store'
 //   alarms, notifications      finish a focus session and notify you even when no new tab is open
 const ALLOWED = new Set(['storage', 'unlimitedStorage', 'tabs', 'alarms', 'notifications', 'identity'])
 for (const p of manifest.permissions ?? []) if (!ALLOWED.has(p)) fail(`unexpected permission "${p}" (allowed: ${[...ALLOWED].join(', ')})`)
-if (manifest.host_permissions?.length) fail(`host_permissions are not expected: ${manifest.host_permissions.join(', ')}`)
+// News and quote feeds do not send CORS headers, so the extension page needs these hosts.
+const ALLOWED_HOSTS = new Set([
+  'https://techcrunch.com/*',
+  'https://www.theverge.com/*',
+  'https://feeds.arstechnica.com/*',
+  'https://www.theguardian.com/*',
+  'https://www.technologyreview.com/*',
+  'https://feeds.bbci.co.uk/*',
+  'https://www.bbc.co.uk/*',
+  'https://www.bbc.com/*',
+  'https://hnrss.org/*',
+  'https://www.nasa.gov/*',
+  'https://www.cnbc.com/*',
+  'https://zenquotes.io/*',
+  'https://quotable.vercel.app/*',
+])
+for (const host of manifest.host_permissions ?? []) if (!ALLOWED_HOSTS.has(host)) fail(`unexpected host permission "${host}"`)
 
 // The service worker: present, and self-contained (it must not drag in the app, which needs a DOM).
 const worker = manifest.background?.service_worker
@@ -177,5 +193,5 @@ const sha = createHash('sha256').update(zip).digest('hex')
 console.log(`\n✓ ${path.relative(root, zipPath)}`)
 console.log(`  ${files.length} files, ${fmtKB(zip.length)} zipped (${fmtKB(totalBytes)} unpacked)`)
 console.log(`  sha256 ${sha}`)
-console.log('\nLoad it: unzip, open chrome://extensions, enable Developer mode, "Load unpacked", pick the folder.')
-console.log('Publish it: upload the zip at https://chrome.google.com/webstore/devconsole')
+console.log('\nLoad it in Chrome (chrome://extensions) or Brave (brave://extensions): unzip, turn on Developer mode, Load unpacked.')
+console.log('This build is not published to the Chrome Web Store. Firefox is not supported yet.')

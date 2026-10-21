@@ -1,12 +1,15 @@
 import { AI_PROVIDERS } from '@/config/aiProviders'
+import { AMBIENT_VIDEOS, DEFAULT_AMBIENT } from '@/config/ambientVideos'
 import { clampFontScale, isHexColor } from '@/config/appearance'
+import { cleanSolidList } from '@/config/solids'
 import { FONTS } from '@/config/fonts'
-import { GRADIENTS } from '@/config/gradients'
+import { cleanGradientColors, GRADIENTS } from '@/config/gradients'
 import { SEARCH_ENGINES } from '@/config/searchEngines'
 import { isGithubUsername } from '@/services/github'
-import { NEWS_CATEGORIES } from '@/services/news'
+import { NEWS_CATEGORIES, NEWS_TOPICS, providerById } from '@/services/news'
 import { cleanStashName, cleanTabs, MAX_STASH_GROUPS } from '@/services/stash'
 import { clampChordWindow, isValidTrigger } from '@/utils/chords'
+import { readGreetings } from '@/utils/greetings'
 import { MAX_TAB_TITLE } from '@/utils/tabTitle'
 import { isValidTimeZone } from '@/utils/timezones'
 import { hostnameOf, normalizeUrl } from '@/utils/url'
@@ -68,7 +71,7 @@ export type ParseResult =
   | { ok: true; data: BackupData; summary: BackupSummary; warnings: string[] }
   | { ok: false; error: string }
 
-/** What goes into a backup: configuration, plus (optionally) notes, tasks and saved tab groups. Wallpapers and the Unsplash key stay on the device. */
+/** What goes into a backup: configuration, plus (optionally) notes, tasks and saved tab groups. Uploaded wallpapers stay on the device. */
 export function buildBackup(
   state: BackupData,
   options: { includeNotes: boolean; appVersion: string; now?: Date },
@@ -97,6 +100,46 @@ export const backupFileName = (now: Date = new Date()) => `delulutab-backup-${no
 // ------------------------------------------------------------------ parsing (the input is untrusted)
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
+
+function parseCustomQuotes(value: unknown): Settings['customQuotes'] {
+  if (!Array.isArray(value)) return []
+  const quotes: Settings['customQuotes'] = []
+  for (const row of value) {
+    if (!isObject(row)) continue
+    const line = text(row.text, 180).trim()
+    const by = text(row.by, 48).trim()
+    if (!line) continue
+    quotes.push({ text: line, by: by || 'You' })
+    if (quotes.length >= 24) break
+  }
+  return quotes
+}
+
+function parseGreetings(value: unknown, warnings: string[]): Settings['greetings'] {
+  if (value == null) return null
+  const { book, error } = readGreetings(value)
+  if (error) {
+    warnings.push('Custom greetings were invalid, so the built-in lines were kept.')
+    return null
+  }
+  return book
+}
+
+function parseTopics(value: unknown, fallback: Settings['newsTopics']): Settings['newsTopics'] {
+  if (!Array.isArray(value)) return fallback
+  const topics = value.filter((id): id is Settings['newsTopics'][number] => NEWS_TOPICS.some((topic) => topic.id === id))
+  return topics.length ? topics : fallback
+}
+
+function parseProviders(value: unknown): Settings['newsProviders'] {
+  if (!isObject(value)) return {}
+  const out: Settings['newsProviders'] = {}
+  for (const topic of NEWS_TOPICS) {
+    const id = value[topic.id]
+    if (typeof id === 'string' && providerById(id)?.topic === topic.id) out[topic.id] = id
+  }
+  return out
+}
 // eslint-disable-next-line no-control-regex
 const stripControls = (s: string) => s.replace(/[\u0000-\u001f\u007f]/g, '')
 const text = (v: unknown, max: number, fallback = '') => (typeof v === 'string' ? stripControls(v).slice(0, max) : fallback)
@@ -105,6 +148,28 @@ const num = (v: unknown, min: number, max: number, fallback: number) =>
   typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : fallback
 function oneOf<T extends string>(v: unknown, allowed: readonly T[], fallback: T): T {
   return typeof v === 'string' && (allowed as readonly string[]).includes(v) ? (v as T) : fallback
+}
+
+function ambientChoice(value: unknown, fallback: string) {
+  if (typeof value === 'string' && /^upload:[0-9a-f-]{36}$/i.test(value)) return value
+  return oneOf(value, AMBIENT_VIDEOS.map((video) => video.id), fallback)
+}
+
+function httpsLink(value: unknown) {
+  const href = text(value, 300)
+  return /^https:\/\/\S{1,300}$/i.test(href) ? href : ''
+}
+
+/** Older backups called a picture link "daily". Bing and NASA choices fall back to the default background. */
+function backgroundChoice(raw: Record<string, unknown>, fallback: Settings['backgroundSource']): Settings['backgroundSource'] {
+  if (raw.backgroundSource === 'daily') return httpsLink(raw.imageLink) || httpsLink(raw.dailyUrl) ? 'custom' : fallback
+  return oneOf(raw.backgroundSource, ['gradient', 'custom', 'video', 'solid'], fallback)
+}
+
+function imageLinkChoice(raw: Record<string, unknown>) {
+  const link = httpsLink(raw.imageLink) || httpsLink(raw.dailyUrl)
+  if (raw.backgroundSource === 'daily') return link
+  return httpsLink(raw.imageLink)
 }
 
 const isSpotifyClientId = (v: unknown): v is string => typeof v === 'string' && /^[a-f0-9]{32}$/i.test(v)
@@ -129,21 +194,34 @@ function parseSettings(raw: unknown, warnings: string[]): Settings {
   }
   return {
     theme: oneOf(r.theme, ['dark', 'light', 'dynamic'], d.theme),
-    layoutMode: oneOf(r.layoutMode, ['compact', 'detailed', 'focus'], d.layoutMode),
-    backgroundSource: oneOf(r.backgroundSource, ['unsplash', 'gradient', 'custom'], d.backgroundSource),
+    layoutMode: oneOf(r.layoutMode === 'compact' ? 'detailed' : r.layoutMode, ['detailed', 'focus'], d.layoutMode === 'compact' ? 'detailed' : d.layoutMode),
+    backgroundSource: backgroundChoice(r, d.backgroundSource),
     gradientPreset: oneOf(r.gradientPreset, GRADIENTS.map((g) => g.id), d.gradientPreset),
-    unsplashQuery: text(r.unsplashQuery, 80, d.unsplashQuery),
+    gradientColors: cleanGradientColors(r.gradientColors),
+    ambientVideo: ambientChoice(r.ambientVideo, d.ambientVideo ?? DEFAULT_AMBIENT),
+    imageLink: imageLinkChoice(r),
+    solidColor: isHexColor(r.solidColor) ? r.solidColor.toLowerCase() : d.solidColor,
+    solidEffect: oneOf(r.solidEffect, ['still', 'fade', 'breathe'], d.solidEffect),
+    solidEffectColor: isHexColor(r.solidEffectColor) ? r.solidEffectColor.toLowerCase() : d.solidEffectColor,
+    solidCustom: cleanSolidList(r.solidCustom),
     backgroundRotation: oneOf(r.backgroundRotation, ['off', 'newtab', '1m', '5m', '15m', '1h'], d.backgroundRotation),
     backgroundDim: Math.round(num(r.backgroundDim, 0, 60, d.backgroundDim)),
     backgroundBlur: Math.round(num(r.backgroundBlur, 0, 20, d.backgroundBlur)),
     clockFormat: oneOf(r.clockFormat, ['12h', '24h'], d.clockFormat),
     showSeconds: bool(r.showSeconds, d.showSeconds),
     userName: text(r.userName, 30, d.userName),
-    searchEngine: oneOf(r.searchEngine, SEARCH_ENGINES.map((e) => e.id), d.searchEngine),
+    greetings: parseGreetings(r.greetings, warnings),
+    appName: text(r.appName, 40, d.appName),
+    searchEngine: oneOf(r.searchEngine === 'ecosia' ? 'brave' : r.searchEngine, SEARCH_ENGINES.map((e) => e.id), d.searchEngine),
     commandMode: oneOf(r.commandMode, ['web', 'ai'], d.commandMode),
     temperatureUnit: oneOf(r.temperatureUnit, ['c', 'f'], d.temperatureUnit),
     weatherLocation: location,
     newsCategory: oneOf(r.newsCategory, NEWS_CATEGORIES.map((c) => c.id), d.newsCategory),
+    newsTopics: parseTopics(r.newsTopics, d.newsTopics),
+    newsProviders: parseProviders(r.newsProviders),
+    quoteSource: oneOf(r.quoteSource, ['builtin', 'classics', 'custom', 'zenquotes', 'quotable', 'url'], d.quoteSource),
+    customQuotes: parseCustomQuotes(r.customQuotes),
+    quoteUrl: /^https:\/\/\S{1,300}$/i.test(text(r.quoteUrl, 300)) ? text(r.quoteUrl, 300) : '',
     aiProvider: oneOf(r.aiProvider, AI_PROVIDERS.map((p) => p.id), d.aiProvider),
     tabTitleMode: oneOf(r.tabTitleMode, ['name', 'time', 'custom'], d.tabTitleMode),
     tabTitleCustom: text(r.tabTitleCustom, MAX_TAB_TITLE, d.tabTitleCustom),
@@ -152,6 +230,10 @@ function parseSettings(raw: unknown, warnings: string[]): Settings {
     fontFamily: oneOf(r.fontFamily, FONTS.map((f) => f.id), d.fontFamily),
     showLogos: bool(r.showLogos, d.showLogos),
     clockStyle: oneOf(r.clockStyle, ['digital', 'flip', 'analog', 'world'], d.clockStyle),
+    clockWeight: oneOf(r.clockWeight === 'regular' ? 'normal' : r.clockWeight, ['lighter', 'light', 'normal', 'bold', 'bolder', 'boldest'], d.clockWeight),
+    clockFont: oneOf(r.clockFont, ['sans', 'serif', 'mono'], d.clockFont),
+    clockTracking: oneOf(r.clockTracking, ['tight', 'normal', 'wide'], d.clockTracking),
+    clockColor: isHexColor(r.clockColor) ? r.clockColor.toLowerCase() : null,
     secondTimezone: isValidTimeZone(r.secondTimezone) ? r.secondTimezone : d.secondTimezone,
     accent: isHexColor(r.accent) ? r.accent.toLowerCase() : null,
     quickAppsTab: oneOf(r.quickAppsTab, ['notes', 'todos', 'calc'], d.quickAppsTab),
@@ -246,7 +328,7 @@ function parseStashes(raw: unknown, warnings: string[]): StashGroup[] {
   for (const item of cap(raw, MAX_STASH_GROUPS, 'saved tab groups', warnings)) {
     if (!isObject(item)) continue
     const tabs = cleanTabs(Array.isArray(item.tabs) ? (item.tabs.filter(isObject) as { url?: unknown; title?: unknown; pinned?: unknown }[]) : [])
-    if (tabs.length === 0) continue
+    if (tabs.length === 0 && !cleanStashName(item.name)) continue
     let id = text(item.id, 64)
     if (!id || ids.has(id)) id = crypto.randomUUID()
     ids.add(id)

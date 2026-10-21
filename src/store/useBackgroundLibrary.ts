@@ -1,21 +1,19 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import type { Tone } from '@/utils/color'
+import { processClipFile, MAX_CLIPS } from '@/utils/clipFiles'
 import { processImageFile } from '@/utils/imageFiles'
-import { fetchRandomPhotos, UnsplashError, type UnsplashPhoto } from '@/services/unsplash'
 import { createChromeStorage, subscribeToExternalChanges } from '@/services/storage/chromeStorage'
 
 /**
  * Device-local background data. Kept out of the synced app store: images are far past the 8KB
- * sync item limit, and an Unsplash key shouldn't roam between machines.
+ * sync item limit.
  */
 
 const STORAGE_KEY = 'delulutab:bg-library'
 const IMAGE_KEY = (id: string) => `delulutab:bg-image:${id}`
+const CLIP_KEY = (id: string) => `delulutab:bg-clip:${id}`
 const MAX_IMAGES = 20
-const QUEUE_SIZE = 30
-const QUEUE_MAX_AGE_MS = 6 * 60 * 60 * 1000
-const QUEUE_LOW_WATER = 4
 
 const storage = createChromeStorage('local')
 
@@ -28,16 +26,22 @@ export interface UploadedImage {
   bytes: number
 }
 
+export interface UploadedClip {
+  id: string
+  name: string
+  kind: 'video' | 'gif'
+  thumb: string
+  tone: Tone
+  bytes: number
+}
+
 type Status = 'idle' | 'loading' | 'error'
 
 interface LibraryState {
   images: UploadedImage[]
+  clips: UploadedClip[]
   /** Image shown when the slideshow is off. */
   pinnedImageId: string | null
-  unsplashKey: string
-  unsplashQueue: UnsplashPhoto[]
-  unsplashQueueQuery: string
-  unsplashFetchedAt: number
 
   // runtime only (not persisted)
   status: Status
@@ -46,28 +50,23 @@ interface LibraryState {
   skipTick: number
 
   addImages: (files: File[]) => Promise<string[]>
+  addClips: (files: File[]) => Promise<string[]>
   removeImage: (id: string) => Promise<void>
+  removeClip: (id: string) => Promise<void>
   pinImage: (id: string) => void
-  setUnsplashKey: (key: string) => void
-  /** Makes sure the queue holds photos for `query`; throws UnsplashError when it can't. */
-  ensureUnsplashQueue: (query: string) => Promise<void>
   skip: () => void
   clearError: () => void
 }
 
-let inflight: Promise<void> | null = null
-
 export const readImageData = async (id: string) => (await storage.getItem(IMAGE_KEY(id))) as string | null
+export const readClipData = async (id: string) => (await storage.getItem(CLIP_KEY(id))) as string | null
 
 export const useBackgroundLibrary = create<LibraryState>()(
   persist(
     (set, get) => ({
       images: [],
+      clips: [],
       pinnedImageId: null,
-      unsplashKey: '',
-      unsplashQueue: [],
-      unsplashQueueQuery: '',
-      unsplashFetchedAt: 0,
       status: 'idle',
       error: '',
       skipTick: 0,
@@ -99,6 +98,32 @@ export const useBackgroundLibrary = create<LibraryState>()(
         return problems
       },
 
+      addClips: async (files) => {
+        const problems: string[] = []
+        for (const file of files) {
+          if (get().clips.length >= MAX_CLIPS) {
+            problems.push(`You can keep up to ${MAX_CLIPS} clips. Remove one to add more.`)
+            break
+          }
+          try {
+            const processed = await processClipFile(file)
+            const id = crypto.randomUUID()
+            try {
+              await storage.setItem(CLIP_KEY(id), processed.data)
+            } catch {
+              await storage.removeItem(CLIP_KEY(id))
+              throw new Error(`${file.name}: browser storage is full. Remove a clip and try again.`)
+            }
+            set((s) => ({
+              clips: [...s.clips, { id, name: file.name, kind: processed.kind, thumb: processed.thumb, tone: processed.tone, bytes: file.size }],
+            }))
+          } catch (err) {
+            problems.push(err instanceof Error ? err.message : `${file.name}: couldn't add this clip.`)
+          }
+        }
+        return problems
+      },
+
       removeImage: async (id) => {
         await storage.removeItem(IMAGE_KEY(id))
         set((s) => {
@@ -107,51 +132,32 @@ export const useBackgroundLibrary = create<LibraryState>()(
         })
       },
 
-      pinImage: (id) => set({ pinnedImageId: id }),
-
-      setUnsplashKey: (key) => set({ unsplashKey: key.trim(), unsplashQueue: [], unsplashQueueQuery: '', unsplashFetchedAt: 0 }),
-
-      ensureUnsplashQueue: async (query) => {
-        const s = get()
-        if (!s.unsplashKey) throw new UnsplashError('Add your Unsplash access key to load photos.')
-        const sameQuery = s.unsplashQueueQuery === query
-        const fresh = sameQuery && s.unsplashQueue.length >= QUEUE_LOW_WATER && Date.now() - s.unsplashFetchedAt < QUEUE_MAX_AGE_MS
-        if (fresh) return
-        if (inflight) return inflight
-
-        set({ status: 'loading' })
-        inflight = (async () => {
-          try {
-            const photos = await fetchRandomPhotos(s.unsplashKey, query)
-            const known = sameQuery ? get().unsplashQueue : []
-            const seen = new Set(known.map((p) => p.id))
-            const merged = [...known, ...photos.filter((p) => !seen.has(p.id))].slice(-QUEUE_SIZE)
-            set({ unsplashQueue: merged, unsplashQueueQuery: query, unsplashFetchedAt: Date.now(), status: 'idle', error: '' })
-          } catch (err) {
-            set({ status: 'error', error: err instanceof Error ? err.message : 'Unsplash request failed.' })
-            // An aging queue for the same topic is still good to show; only fail when there's nothing.
-            if (!(sameQuery && get().unsplashQueue.length > 0)) throw err
-          } finally {
-            inflight = null
-          }
-        })()
-        return inflight
+      removeClip: async (id) => {
+        await storage.removeItem(CLIP_KEY(id))
+        set((s) => ({ clips: s.clips.filter((clip) => clip.id !== id) }))
       },
+
+      pinImage: (id) => set({ pinnedImageId: id }),
 
       skip: () => set((s) => ({ skipTick: s.skipTick + 1 })),
       clearError: () => set({ status: 'idle', error: '' }),
     }),
     {
       name: STORAGE_KEY,
-      version: 1,
+      version: 2,
+      migrate: (persisted) => {
+        const state = { ...(persisted as Record<string, unknown>) }
+        delete state.unsplashKey
+        delete state.unsplashQueue
+        delete state.unsplashQueueQuery
+        delete state.unsplashFetchedAt
+        return state as unknown as LibraryState
+      },
       storage: createJSONStorage(() => storage),
       partialize: (s) => ({
         images: s.images,
+        clips: s.clips,
         pinnedImageId: s.pinnedImageId,
-        unsplashKey: s.unsplashKey,
-        unsplashQueue: s.unsplashQueue,
-        unsplashQueueQuery: s.unsplashQueueQuery,
-        unsplashFetchedAt: s.unsplashFetchedAt,
       }),
     },
   ),

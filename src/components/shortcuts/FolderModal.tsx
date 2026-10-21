@@ -39,7 +39,7 @@ function FolderForm({ folder, onDone }: { folder?: Folder; onDone: () => void })
     <form onSubmit={submit} className="grid gap-4">
       <DialogHeader>
         <DialogTitle>{folder ? 'Rename folder' : 'New folder'}</DialogTitle>
-        <DialogDescription>Folders group related shortcuts and can be collapsed.</DialogDescription>
+        <DialogDescription>A folder is an icon on the grid. Open it to see the shortcuts inside.</DialogDescription>
       </DialogHeader>
       <Input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Folder name" aria-label="Folder name" />
       <DialogFooter>

@@ -1,8 +1,8 @@
 {
   "name": "delulutab",
   "private": true,
-  "version": "1.1.0",
-  "description": "DeluluTab — an AI-focused Chrome New Tab replacement.",
+  "version": "1.2.0",
+  "description": "DeluluTab — a new tab for Chrome and Brave. Search, AI, chords, and a dashboard that stays on your device.",
   "author": "GautamVhavle <gautam.vhavle@grigtechnologies.com>",
   "license": "MIT",
   "repository": {
@@ -15,6 +15,7 @@
   "homepage": "https://github.com/GautamVhavle/DeluluTab#readme",
   "keywords": [
     "chrome-extension",
+    "brave",
     "new-tab",
     "manifest-v3",
     "react",

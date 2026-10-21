@@ -9,10 +9,12 @@
  * Logos are for identifying a site the user chose (their shortcuts, AI tools, search engines).
  */
 import type { IconType } from 'react-icons'
-import { FaBolt, FaBrain, FaCompass, FaGithub, FaGlobe, FaGoogle, FaRobot, FaXTwitter, FaYoutube } from 'react-icons/fa6'
+import { FaBolt, FaCompass, FaGlobe, FaGoogle, FaRobot, FaXTwitter } from 'react-icons/fa6'
+import { SiBrave, SiClaude, SiGithub, SiGmail, SiYoutube } from 'react-icons/si'
+import { BingMark } from '@/components/common/BrandMarks'
 import { MdStars } from 'react-icons/md'
 
-export type PlatformId = 'openai' | 'claude' | 'gemini' | 'grok' | 'perplexity' | 'google' | 'github' | 'youtube' | 'x'
+export type PlatformId = 'openai' | 'claude' | 'gemini' | 'grok' | 'perplexity' | 'google' | 'gmail' | 'github' | 'youtube' | 'x' | 'bing' | 'brave'
 
 interface Platform {
   name: string
@@ -32,15 +34,18 @@ export const PLATFORMS: Record<PlatformId, Platform> = {
   openai: { name: 'OpenAI', logo: '', site: 'chatgpt.com', symbol: FaRobot },
   // claude.ai/favicon.svg exists but is served with Cross-Origin-Resource-Policy: same-origin, so browsers refuse to
   // embed it anywhere else; Google's favicon service carries the same official icon.
-  claude: { name: 'Claude', logo: '', site: 'claude.ai', symbol: FaBrain },
+  claude: { name: 'Claude', logo: '', site: 'claude.ai', symbol: SiClaude },
   gemini: { name: 'Gemini', logo: 'https://www.gstatic.com/lamda/images/favicon_v1_150160cddff7f294ce30.svg', site: 'gemini.google.com', symbol: MdStars },
   grok: { name: 'Grok', logo: 'https://grok.com/images/favicon.svg', site: 'grok.com', symbol: FaBolt },
   perplexity: { name: 'Perplexity', logo: 'https://www.perplexity.ai/favicon.svg', site: 'perplexity.ai', symbol: FaCompass },
   // Google and YouTube publish their official favicons as PNG on gstatic.com rather than SVG.
   google: { name: 'Google', logo: 'https://www.gstatic.com/images/branding/googleg/1x/googleg_standard_color_128dp.png', site: 'google.com', symbol: FaGoogle },
-  github: { name: 'GitHub', logo: 'https://github.githubassets.com/favicons/favicon.svg', site: 'github.com', symbol: FaGithub },
-  youtube: { name: 'YouTube', logo: 'https://www.gstatic.com/youtube/img/branding/favicon/favicon_144x144.png', site: 'youtube.com', symbol: FaYoutube },
-  x: { name: 'X', logo: 'https://abs.twimg.com/responsive-web/client-web/icon-svg.ea5ff4aa.svg', site: 'x.com', symbol: FaXTwitter },
+  gmail: { name: 'Gmail', logo: 'https://www.gstatic.com/images/branding/product/1x/gmail_2020q4_32dp.png', site: 'mail.google.com', symbol: SiGmail },
+  github: { name: 'GitHub', logo: '', site: 'github.com', symbol: SiGithub },
+  youtube: { name: 'YouTube', logo: '', site: 'youtube.com', symbol: SiYoutube },
+  x: { name: 'X', logo: 'https://cdn.simpleicons.org/x/000000', site: 'x.com', symbol: FaXTwitter },
+  bing: { name: 'Bing', logo: '', site: 'bing.com', symbol: BingMark },
+  brave: { name: 'Brave', logo: '', site: 'search.brave.com', symbol: SiBrave },
 }
 
 const parse = (input: string): URL | null => {
@@ -77,7 +82,10 @@ export function detectPlatform(input: string): PlatformId | null {
   if (isHost(host, 'perplexity.ai')) return 'perplexity'
   if (isHost(host, 'github.com')) return 'github'
   if (isHost(host, 'youtube.com') || host === 'youtu.be') return 'youtube'
-  if (host === 'google.com') return 'google' // only the Google homepage; mail.google.com etc. have their own icons
+  if (host === 'mail.google.com' || host === 'gmail.com') return 'gmail'
+  if (isHost(host, 'bing.com')) return 'bing'
+  if (isHost(host, 'brave.com')) return 'brave'
+  if (host === 'google.com') return 'google' // only the Google homepage; other Google products have their own marks
   return null
 }
 
@@ -85,6 +93,9 @@ export const officialLogoUrl = (id: PlatformId): string | null => PLATFORMS[id].
 
 export const googleFaviconUrl = (domain: string, size = 128) =>
   `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${Math.min(256, Math.max(16, Math.round(size)))}`
+
+/** A second favicon host. Google's service sometimes answers with a generic globe; this one usually has the real mark. */
+export const duckDuckGoIconUrl = (domain: string) => `https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`
 
 /** Symbol for the third fallback: the platform's own glyph if we know it, else a globe. */
 export function fallbackSymbol(input: string): IconType {
@@ -128,9 +139,10 @@ export function getFaviconCandidates(input: string, options: { size?: number; en
     const official = officialLogoUrl(platform)
     if (official) chain.push(official)
     // For platforms the Google service should be asked about the platform's real site, not a path like x.com/i/grok.
-    chain.push(googleFaviconUrl(host.endsWith(PLATFORMS[platform].site) ? host : PLATFORMS[platform].site, size))
+    const site = host.endsWith(PLATFORMS[platform].site) ? host : PLATFORMS[platform].site
+    chain.push(googleFaviconUrl(site, size), duckDuckGoIconUrl(site))
   } else {
-    chain.push(googleFaviconUrl(host, size))
+    chain.push(googleFaviconUrl(host, size), duckDuckGoIconUrl(host))
   }
 
   const remembered = recall(host)

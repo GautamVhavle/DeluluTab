@@ -18,38 +18,40 @@ export default {
         sans: ['var(--font-sans)', '"Inter Variable"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
+        // The variables are real colours so light and dark can ease. hsl(from …) is the old
+        // hsl(var(--token) / alpha) stroke: color-mix was painting borders and rings twice.
+        border: 'hsl(from var(--border) h s l / <alpha-value>)',
+        input: 'hsl(from var(--input) h s l / <alpha-value>)',
+        ring: 'hsl(from var(--ring) h s l / <alpha-value>)',
+        background: 'hsl(from var(--background) h s l / <alpha-value>)',
+        foreground: 'hsl(from var(--foreground) h s l / <alpha-value>)',
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: 'hsl(from var(--primary) h s l / <alpha-value>)',
+          foreground: 'hsl(from var(--primary-foreground) h s l / <alpha-value>)',
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
+          DEFAULT: 'hsl(from var(--secondary) h s l / <alpha-value>)',
+          foreground: 'hsl(from var(--secondary-foreground) h s l / <alpha-value>)',
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
+          DEFAULT: 'hsl(from var(--destructive) h s l / <alpha-value>)',
+          foreground: 'hsl(from var(--destructive-foreground) h s l / <alpha-value>)',
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          DEFAULT: 'hsl(from var(--muted) h s l / <alpha-value>)',
+          foreground: 'hsl(from var(--muted-foreground) h s l / <alpha-value>)',
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          DEFAULT: 'hsl(from var(--accent) h s l / <alpha-value>)',
+          foreground: 'hsl(from var(--accent-foreground) h s l / <alpha-value>)',
         },
         popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
+          DEFAULT: 'hsl(from var(--popover) h s l / <alpha-value>)',
+          foreground: 'hsl(from var(--popover-foreground) h s l / <alpha-value>)',
         },
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
+          DEFAULT: 'hsl(from var(--card) h s l / <alpha-value>)',
+          foreground: 'hsl(from var(--card-foreground) h s l / <alpha-value>)',
         },
       },
       keyframes: {

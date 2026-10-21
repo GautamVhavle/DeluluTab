@@ -15,17 +15,19 @@ import { chromium } from '@playwright/test'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const out = path.join(root, 'store')
-const PORT = 5198
-const URL = `http://localhost:${PORT}/`
+const given = process.argv.indexOf('--url')
+const URL = given > -1 ? process.argv[given + 1] : 'http://localhost:5198/'
 
-if (!existsSync(path.join(root, 'dist', 'index.html'))) {
+if (given === -1 && !existsSync(path.join(root, 'dist', 'index.html'))) {
   console.error('dist/ not found. Run "npm run build" first.')
   process.exit(1)
 }
 mkdirSync(out, { recursive: true })
 
-const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { cwd: root, stdio: 'ignore' })
-const stop = () => server.kill()
+const server = given === -1
+  ? spawn('npx', ['vite', 'preview', '--port', '5198', '--strictPort'], { cwd: root, stdio: 'ignore' })
+  : null
+const stop = () => server?.kill()
 process.on('exit', stop)
 
 async function waitForServer() {
@@ -40,12 +42,18 @@ async function waitForServer() {
   throw new Error('vite preview did not start')
 }
 
-/** A believable dashboard: a city for the weather card and a name for the greeting. */
+/** Greeting Gautam, weather Hyderabad, Night earth behind the cards. */
 const SEED = {
   state: {
-    settings: { userName: 'Gautam', weatherLocation: { name: 'San Francisco', latitude: 37.7749, longitude: -122.4194 } },
+    settings: {
+      userName: 'Gautam',
+      layoutMode: 'detailed',
+      backgroundSource: 'video',
+      ambientVideo: 'night-earth',
+      weatherLocation: { name: 'Hyderabad', latitude: 17.385, longitude: 78.4867 },
+    },
   },
-  version: 4,
+  version: 8,
 }
 
 try {
@@ -60,16 +68,32 @@ try {
   await page.waitForSelector('.react-grid-item')
   await page.waitForTimeout(3500)
 
-  for (const [mode, file] of [['Detailed', 'screenshot-1-detailed.png'], ['Compact', 'screenshot-2-compact.png'], ['Focus', 'screenshot-3-focus.png']]) {
-    await page.getByRole('radio', { name: mode, exact: true }).click()
-    await page.waitForTimeout(1500)
+  async function show(mode) {
+    await page.evaluate((next) => {
+      const key = 'delulutab:store'
+      const saved = JSON.parse(localStorage.getItem(key) || '{}')
+      saved.state.settings.layoutMode = next
+      saved.version = 8
+      localStorage.setItem(key, JSON.stringify(saved))
+    }, mode)
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('.react-grid-item')
+    await page.getByText('Hyderabad').waitFor({ timeout: 8000 }).catch(() => {})
+    await page.locator('video[poster*="night-earth"]').first().waitFor({ timeout: 15000 })
+    await page.waitForTimeout(800)
+  }
+
+  for (const [mode, file] of [['detailed', 'screenshot-1-detailed.png'], ['compact', 'screenshot-2-compact.png'], ['focus', 'screenshot-3-focus.png']]) {
+    await show(mode)
+    if (mode === 'compact') await page.locator('[data-boot="switcher"]').evaluate((el) => { el.style.visibility = 'hidden' })
     await page.screenshot({ path: path.join(out, file) })
     console.log(`  store/${file}`)
   }
 
-  await page.getByRole('radio', { name: 'Detailed', exact: true }).click()
-  await page.getByRole('button', { name: 'Edit', exact: true }).click()
-  await page.waitForTimeout(1200)
+  await show('detailed')
+  await page.getByRole('button', { name: 'Settings', exact: true }).click()
+  await page.getByRole('tab', { name: 'Widgets', exact: true }).click()
+  await page.waitForTimeout(800)
   await page.screenshot({ path: path.join(out, 'screenshot-4-widgets.png') })
   console.log('  store/screenshot-4-widgets.png')
 

@@ -26,6 +26,8 @@ export interface WidgetCatalogEntry {
   gallery: string
   /** On the home screen of a fresh install. Extra widgets stay false. */
   defaultVisible: boolean
+  /** Core widgets stay on the dashboard. Only optional ones can be turned off, and the layout closes up around them. */
+  optional: boolean
   /** Also shown in Focus, when the person has added it. */
   focus: boolean
   spec: WidgetSpec
@@ -40,6 +42,7 @@ export const WIDGET_CATALOG: WidgetCatalogEntry[] = [
     hint: 'Time, date and a hello',
     gallery: 'A large clock with a greeting',
     defaultVisible: true,
+    optional: false,
     focus: true,
     spec: { w: 7, h: 7, minW: 3, minH: 4, maxW: 12, maxH: 10 },
   },
@@ -49,6 +52,7 @@ export const WIDGET_CATALOG: WidgetCatalogEntry[] = [
     hint: 'Web search or an AI, from one bar',
     gallery: 'Search the web or ask an AI',
     defaultVisible: true,
+    optional: false,
     focus: true,
     spec: { w: 12, h: 3, minW: 4, minH: 2, maxW: 12, maxH: 4 },
   },
@@ -58,6 +62,7 @@ export const WIDGET_CATALOG: WidgetCatalogEntry[] = [
     hint: 'Current conditions and a 4-day forecast',
     gallery: 'Conditions now and the next few days',
     defaultVisible: true,
+    optional: false,
     focus: false,
     spec: { w: 5, h: 7, minW: 3, minH: 4, maxW: 8, maxH: 10 },
   },
@@ -67,17 +72,29 @@ export const WIDGET_CATALOG: WidgetCatalogEntry[] = [
     hint: 'Your shortcuts and folders',
     gallery: 'Shortcuts and folders',
     defaultVisible: true,
+    optional: false,
     focus: false,
     spec: { w: 7, h: 8, minW: 3, minH: 4, maxW: 12, maxH: 14 },
   },
   {
     key: 'news',
     label: 'News',
-    hint: 'Headlines by category',
-    gallery: 'Headlines you can scroll',
-    defaultVisible: true,
+    hint: 'A full-width list under the dashboard',
+    gallery: 'Headlines you scroll, with photos',
+    defaultVisible: false,
+    optional: true,
     focus: false,
     spec: { w: 5, h: 7, minW: 3, minH: 3, maxW: 8, maxH: 14 },
+  },
+  {
+    key: 'quotes',
+    label: 'Daily quote',
+    hint: 'A line to start the day',
+    gallery: 'A quotation in a display face',
+    defaultVisible: true,
+    optional: false,
+    focus: false,
+    spec: { w: 5, h: 5, minW: 3, minH: 3, maxW: 8, maxH: 10 },
   },
   {
     key: 'aiLauncher',
@@ -85,6 +102,7 @@ export const WIDGET_CATALOG: WidgetCatalogEntry[] = [
     hint: 'A larger box for prompts and presets',
     gallery: 'Prompt presets for ChatGPT, Claude, Grok, Gemini',
     defaultVisible: false,
+    optional: true,
     focus: false,
     spec: { w: 6, h: 6, minW: 4, minH: 4, maxW: 12, maxH: 12 },
   },
@@ -94,6 +112,7 @@ export const WIDGET_CATALOG: WidgetCatalogEntry[] = [
     hint: 'Pomodoro timer with ambient sounds',
     gallery: 'A focus timer with rain, cafe or noise',
     defaultVisible: false,
+    optional: true,
     focus: true,
     spec: { w: 4, h: 6, minW: 3, minH: 4, maxW: 6, maxH: 10 },
   },
@@ -103,6 +122,7 @@ export const WIDGET_CATALOG: WidgetCatalogEntry[] = [
     hint: 'Contribution graph and recent repositories',
     gallery: 'Your contribution graph and recent repositories.',
     defaultVisible: false,
+    optional: true,
     focus: false,
     localSetup: 'Asks for your GitHub username and keeps it on this device.',
     spec: { w: 6, h: 7, minW: 4, minH: 5, maxW: 12, maxH: 12 },
@@ -110,9 +130,10 @@ export const WIDGET_CATALOG: WidgetCatalogEntry[] = [
   {
     key: 'tabStash',
     label: 'Tab stash',
-    hint: 'Save and restore sets of tabs',
-    gallery: 'Save the tabs in this window and open them later',
+    hint: 'Lists of links you can edit, save and open together',
+    gallery: 'Open a list, edit its links, then restore them',
     defaultVisible: false,
+    optional: true,
     focus: false,
     spec: { w: 4, h: 6, minW: 3, minH: 4, maxW: 8, maxH: 12 },
   },
@@ -122,6 +143,7 @@ export const WIDGET_CATALOG: WidgetCatalogEntry[] = [
     hint: 'What is playing, with album art and progress',
     gallery: 'What is playing right now, with album art and progress.',
     defaultVisible: false,
+    optional: true,
     focus: false,
     localSetup: 'Connects with your own Spotify app. Sign-in tokens stay on this device.',
     spec: { w: 4, h: 6, minW: 3, minH: 4, maxW: 6, maxH: 9 },

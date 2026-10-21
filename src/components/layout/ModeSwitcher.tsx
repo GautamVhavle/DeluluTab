@@ -1,10 +1,9 @@
-import { LayoutGrid, Focus, Rows3, type IconType } from '@/components/common/icons'
+import { LayoutGrid, Focus, type IconType } from '@/components/common/icons'
 import { motion } from 'framer-motion'
 import { cn } from '@/utils/cn'
 import { useAppStore, type LayoutMode } from '@/store/useAppStore'
 
-const MODES: { value: LayoutMode; label: string; Icon: IconType }[] = [
-  { value: 'compact', label: 'Compact', Icon: Rows3 },
+const MODES: { value: Exclude<LayoutMode, 'compact'>; label: string; Icon: IconType }[] = [
   { value: 'detailed', label: 'Detailed', Icon: LayoutGrid },
   { value: 'focus', label: 'Focus', Icon: Focus },
 ]
@@ -23,7 +22,7 @@ export function ModeSwitcher() {
         className="pointer-events-auto flex gap-1 rounded-full border bg-card/80 p-1 shadow-lg backdrop-blur"
       >
         {MODES.map(({ value, label, Icon }) => {
-          const active = value === mode
+          const active = value === (mode === 'compact' ? 'detailed' : mode)
           return (
             <button
               key={value}

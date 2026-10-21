@@ -2,12 +2,27 @@
   "manifest_version": 3,
   "name": "DeluluTab",
   "short_name": "DeluluTab",
-  "description": "An AI-focused new tab page: search, AI launcher, tab stash, focus timer, GitHub activity, notes and more.",
-  "version": "1.1.0",
+  "description": "A new tab for Chrome and Brave: search, AI, chords, weather, notes and a dashboard you can make your own.",
+  "version": "1.2.0",
   "minimum_chrome_version": "111",
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
+  "host_permissions": [
+    "https://techcrunch.com/*",
+    "https://www.theverge.com/*",
+    "https://feeds.arstechnica.com/*",
+    "https://www.theguardian.com/*",
+    "https://www.technologyreview.com/*",
+    "https://feeds.bbci.co.uk/*",
+    "https://www.bbc.co.uk/*",
+    "https://www.bbc.com/*",
+    "https://hnrss.org/*",
+    "https://www.nasa.gov/*",
+    "https://www.cnbc.com/*",
+    "https://zenquotes.io/*",
+    "https://quotable.vercel.app/*"
+  ],
   "permissions": [
     "storage",
     "unlimitedStorage",

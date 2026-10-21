@@ -1,5 +1,5 @@
 import type { IconType } from 'react-icons'
-import { Archive, Clock, Coffee, Github, Newspaper, Search, Sparkles, Spotify, Widgets } from '@/components/common/icons'
+import { Archive, Clock, Coffee, Github, Newspaper, Quote, Search, Sparkles, Spotify, Widgets } from '@/components/common/icons'
 import { FaCloudSun } from 'react-icons/fa6'
 import type { WidgetKey } from '@/types'
 
@@ -9,6 +9,7 @@ export const WIDGET_ICONS: Record<WidgetKey, IconType> = {
   aiLauncher: Sparkles,
   weather: FaCloudSun,
   news: Newspaper,
+  quotes: Quote,
   quickApps: Widgets,
   pomodoro: Coffee,
   github: Github,

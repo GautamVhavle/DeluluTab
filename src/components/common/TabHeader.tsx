@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useHydrated } from '@/hooks/use-hydrated'
 import { APP_NAME, BLANK_FAVICON, msUntilNextMinute, tabTitle } from '@/utils/tabTitle'
 import { useAppStore } from '@/store/useAppStore'
+import { readBrandLogo } from '@/services/brand'
 import { Logo } from './Logo'
 
 const FAVICON_ID = 'app-favicon'
@@ -12,12 +13,13 @@ function useDocumentMeta() {
   const custom = useAppStore((s) => s.settings.tabTitleCustom)
   const format = useAppStore((s) => s.settings.clockFormat)
   const showIcon = useAppStore((s) => s.settings.showTabIcon)
+  const appName = useAppStore((s) => s.settings.appName)
   const hydrated = useHydrated()
 
   useEffect(() => {
     if (!hydrated) return
     const apply = () => {
-      document.title = tabTitle({ mode, custom, format, now: new Date() })
+      document.title = tabTitle({ mode, custom, format, name: appName, now: new Date() })
     }
     apply()
     if (mode !== 'time') return
@@ -37,31 +39,57 @@ function useDocumentMeta() {
       clearTimeout(timer)
       document.removeEventListener('visibilitychange', onVisible)
     }
-  }, [hydrated, mode, custom, format])
+  }, [hydrated, mode, custom, format, appName])
 
   useEffect(() => {
     if (!hydrated) return
-    const current = document.getElementById(FAVICON_ID) as HTMLLinkElement | null
-    const original = current?.dataset.original ?? current?.getAttribute('href') ?? './logo.svg'
-    // Browsers only refresh a tab icon reliably when the <link> element is replaced, not when its href changes.
-    const next = document.createElement('link')
-    next.id = FAVICON_ID
-    next.rel = 'icon'
-    next.type = 'image/svg+xml'
-    next.dataset.original = original
-    next.href = showIcon ? original : BLANK_FAVICON
-    if (current) current.replaceWith(next)
-    else document.head.appendChild(next)
+    const apply = () => {
+      const current = document.getElementById(FAVICON_ID) as HTMLLinkElement | null
+      const original = current?.dataset.original ?? current?.getAttribute('href') ?? './logo.svg'
+      const brand = readBrandLogo()
+      // Browsers only refresh a tab icon reliably when the <link> element is replaced, not when its href changes.
+      const next = document.createElement('link')
+      next.id = FAVICON_ID
+      next.rel = 'icon'
+      next.dataset.original = original.startsWith('data:') ? './logo.svg' : original
+      if (!showIcon) {
+        next.type = 'image/svg+xml'
+        next.href = BLANK_FAVICON
+      } else if (brand) {
+        next.type = 'image/png'
+        next.href = brand
+      } else {
+        next.type = 'image/svg+xml'
+        next.href = next.dataset.original
+      }
+      if (current) current.replaceWith(next)
+      else document.head.appendChild(next)
+    }
+    apply()
+    window.addEventListener('delulutab:brand', apply)
+    return () => window.removeEventListener('delulutab:brand', apply)
   }, [hydrated, showIcon])
 }
 
 /** The brand mark in the page header. Mounting it also takes over the browser tab's title and icon. */
+function useBrandLogo() {
+  const [logo, setLogo] = useState(readBrandLogo)
+  useEffect(() => {
+    const sync = () => setLogo(readBrandLogo())
+    window.addEventListener('delulutab:brand', sync)
+    return () => window.removeEventListener('delulutab:brand', sync)
+  }, [])
+  return logo
+}
+
 export function TabHeader() {
   useDocumentMeta()
+  const name = useAppStore((s) => s.settings.appName).trim() || APP_NAME
+  const logo = useBrandLogo()
   return (
     <div className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-      <Logo className="h-6 w-6 shrink-0 drop-shadow-sm" />
-      {APP_NAME}
+      {logo ? <img src={logo} alt="" className="h-6 w-6 shrink-0 rounded-md object-cover" /> : <Logo className="h-6 w-6 shrink-0 drop-shadow-sm" />}
+      {name}
     </div>
   )
 }

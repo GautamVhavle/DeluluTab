@@ -1,4 +1,5 @@
 import type { StashTab } from '@/types'
+import { normalizeUrl } from '@/utils/url'
 
 export const MAX_STASH_GROUPS = 50
 export const MAX_TABS_PER_GROUP = 200
@@ -31,6 +32,14 @@ export function cleanTabs(input: { url?: unknown; title?: unknown; pinned?: unkn
 }
 
 export const cleanStashName = (name: unknown) => clean(name, MAX_STASH_NAME)
+
+/** One link a person typed. Accepts "github.com" as well as a full address. */
+export function stashTabFromInput(url: string, title: string): StashTab | null {
+  const normalized = normalizeUrl(url)
+  if (!normalized) return null
+  const [tab] = cleanTabs([{ url: normalized, title }])
+  return tab ?? null
+}
 
 export const defaultStashName = (now = new Date()) =>
   `Session ${now.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}, ${now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`

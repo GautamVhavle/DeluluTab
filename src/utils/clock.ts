@@ -38,12 +38,7 @@ export function timeParts(now: Date, options: { format: ClockFormat; timeZone?: 
   return { ...out, main: `${out.hour}:${out.minute}` }
 }
 
-export function greetingFor(hour: number, name: string) {
-  const who = name.trim()
-  if (hour < 5) return who ? `Still up, ${who}?` : 'Still up, dreamer?'
-  const base = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
-  return who ? `${base}, ${who}` : base
-}
+export { greetingFor } from '@/utils/greetings'
 
 export const dateLabel = (now: Date, timeZone?: string) =>
   now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', ...(timeZone ? { timeZone } : {}) })

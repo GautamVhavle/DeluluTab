@@ -30,7 +30,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: STORAGE_KEY,
-      version: 4,
+      version: 10,
       // v1 chords carried a URL; v2 chords point at a shortcut. Re-link by URL, drop the unmatched.
       migrate: async (persisted, version) => {
         const state = (persisted ?? {}) as Record<string, any>
@@ -64,10 +64,48 @@ export const useAppStore = create<AppState>()(
           }
           state.settings = settings
         }
+        if (version < 5 && state.settings?.searchEngine === 'ecosia') {
+          state.settings = { ...state.settings, searchEngine: 'brave' }
+        }
+        if (version < 6 && state.settings?.layoutMode === 'compact') {
+          state.settings = { ...state.settings, layoutMode: 'detailed' }
+        }
+        if (version < 7 && state.settings?.clockWeight === 'regular') {
+          state.settings = { ...state.settings, clockWeight: 'normal' }
+        }
+        // v8: Bing and NASA daily photos are gone. A saved picture link moves to Uploads.
+        if (version < 8 && state.settings) {
+          const settings = { ...state.settings }
+          const raw = typeof settings.dailyUrl === 'string' ? settings.dailyUrl.trim() : ''
+          const url = /^https:\/\/\S{1,300}$/i.test(raw) ? raw.slice(0, 300) : ''
+          if (settings.backgroundSource === 'daily') {
+            settings.backgroundSource = url ? 'custom' : 'gradient'
+            settings.imageLink = url
+          } else if (typeof settings.imageLink !== 'string') {
+            settings.imageLink = ''
+          }
+          delete settings.dailyUrl
+          delete settings.dailyProvider
+          delete settings.bingImage
+          state.settings = settings
+        }
+        // v9: Unsplash backgrounds are gone. Anyone still on Photos falls back to the gradient.
+        if (version < 9 && state.settings) {
+          const settings = { ...state.settings }
+          if (settings.backgroundSource === 'unsplash') settings.backgroundSource = 'gradient'
+          delete settings.unsplashQuery
+          state.settings = settings
+        }
+        // v10: a blank greeting name shows Cat. A chosen name, and the background, stay as they were.
+        if (version < 10 && state.settings) {
+          const settings = { ...state.settings }
+          if (typeof settings.userName !== 'string' || !settings.userName.trim()) settings.userName = 'Cat'
+          state.settings = settings
+        }
         return state as AppState
       },
       // Settings sync across devices; notes, tasks, stashes and custom widgets stay on this device.
-      storage: createJSONStorage(() => createSplitStorage(['notes', 'todos', 'stashes', 'customWidgets'])),
+      storage: createJSONStorage(() => createSplitStorage(['notes', 'todos', 'stashes', 'customWidgets', 'miniApps'])),
       // Persist data only, never action functions.
       partialize: (s) => ({
         settings: s.settings,
@@ -77,6 +115,7 @@ export const useAppStore = create<AppState>()(
         widgets: s.widgets,
         widgetLayouts: s.widgetLayouts,
         customWidgets: s.customWidgets,
+        miniApps: s.miniApps,
         notes: s.notes,
         todos: s.todos,
         stashes: s.stashes,
@@ -91,6 +130,7 @@ export const useAppStore = create<AppState>()(
           widgets: { ...current.widgets, ...p.widgets },
           widgetLayouts: p.widgetLayouts ? { ...current.widgetLayouts, ...p.widgetLayouts } : current.widgetLayouts,
           customWidgets: p.customWidgets ?? current.customWidgets,
+          miniApps: p.miniApps ?? current.miniApps,
         }
       },
     },

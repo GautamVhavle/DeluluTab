@@ -1,0 +1,37 @@
+{
+  "late": [
+    "Still up",
+    "The night is quiet",
+    "Late hours",
+    "Rest when you can",
+    "Easy, it's late"
+  ],
+  "morning": [
+    "Good morning",
+    "A fresh start",
+    "Ease into the day",
+    "Morning",
+    "The day is yours"
+  ],
+  "afternoon": [
+    "Good afternoon",
+    "Hope the afternoon is kind",
+    "A steady afternoon",
+    "The day is moving",
+    "Keep a little ease"
+  ],
+  "evening": [
+    "Good evening",
+    "Welcome back",
+    "The day is winding down",
+    "A calm evening",
+    "You can slow a little"
+  ],
+  "night": [
+    "Good night",
+    "Time to wind down",
+    "That's enough for today",
+    "Settle in",
+    "Rest well"
+  ]
+}

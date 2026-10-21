@@ -25,6 +25,7 @@ import {
   fetchForecast,
   formatTemp,
   formatWind,
+  placeFromCoords,
   searchPlaces,
   type Place,
   type WeatherKind,
@@ -153,6 +154,28 @@ export function WeatherWidget({ mode }: WidgetProps) {
   const [geoAttempt, setGeoAttempt] = useState(0)
   const geo = useGeolocation(location === null, geoAttempt)
 
+  // First visit, or "Use my location": the browser asks, then the city is saved as the weather place.
+  useEffect(() => {
+    if (location || !geo.coords) return
+    const point = geo.coords
+    let cancelled = false
+    placeFromCoords(point.latitude, point.longitude)
+      .catch(() => null)
+      .then((place) => {
+        if (cancelled || useAppStore.getState().settings.weatherLocation) return
+        updateSettings({
+          weatherLocation: {
+            name: place?.name || 'Your location',
+            latitude: point.latitude,
+            longitude: point.longitude,
+          },
+        })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [location, geo.coords, updateSettings])
+
   const coords = location ?? geo.coords
   const { data, error, loading, refresh } = useCachedResource(
     coords ? `weather:${coords.latitude},${coords.longitude}` : null,
@@ -201,7 +224,9 @@ export function WeatherWidget({ mode }: WidgetProps) {
             </div>
           </>
         ) : (
-          <p className="animate-pulse text-muted-foreground">{geo.loading ? 'Finding your location…' : 'Loading weather…'}</p>
+          <p className="animate-pulse text-muted-foreground">
+            {geo.loading ? 'Allow location in the browser prompt. The weather will use your city.' : 'Loading weather…'}
+          </p>
         )}
       </div>
     )
@@ -213,20 +238,23 @@ export function WeatherWidget({ mode }: WidgetProps) {
 
   if (compact) {
     return (
-      <div className="flex h-full items-center gap-2 text-sm">
-        <WeatherIcon code={current.code} isDay={current.isDay} className="h-5 w-5 shrink-0 text-amber-400" />
-        <span className="font-medium tabular-nums">{formatTemp(current.temp, unit)}°</span>
+      <div className="flex h-full flex-col justify-between gap-3">
         <button
           onClick={() => setPicking(true)}
           title="Change location"
-          className="min-w-0 truncate rounded text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          className="truncate rounded text-left text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
         >
-          {label} · {place}
+          {place}
         </button>
+        <div>
+          <WeatherIcon code={current.code} isDay={current.isDay} className="mb-2 h-8 w-8 text-amber-300" />
+          <p className="text-4xl font-light tabular-nums leading-none">{formatTemp(current.temp, unit)}°</p>
+          <p className="mt-1 text-xs text-muted-foreground">{label}</p>
+        </div>
         <button
           onClick={() => setUnit(unit === 'c' ? 'f' : 'c')}
           aria-label={`Switch to °${unit === 'c' ? 'F' : 'C'}`}
-          className="ml-auto rounded px-1 text-[11px] text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          className="self-start rounded px-1 text-[11px] text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
         >
           °{unit.toUpperCase()}
         </button>

@@ -1,8 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { IconType } from 'react-icons'
-import { fallbackSymbol, getFaviconCandidates, rememberLogo } from '@/utils/getFavicon'
+import { detectPlatform, fallbackSymbol, getFaviconCandidates, rememberLogo, type PlatformId } from '@/utils/getFavicon'
 import { cn } from '@/utils/cn'
 import { useAppStore } from '@/store/useAppStore'
+
+const TINT: Partial<Record<PlatformId, string>> = {
+  claude: 'text-[#D97757]',
+  youtube: 'text-[#FF0000]',
+  gmail: 'text-[#EA4335]',
+  bing: 'text-[#008373]',
+  brave: 'text-[#FB542B]',
+  github: 'text-foreground',
+}
 
 interface Props {
   /** A web address (or bare domain) to find the logo for. */
@@ -35,11 +44,13 @@ export function PlatformLogo({ url, className, fallback, size = 128, backing = f
   }, [key])
 
   const Symbol = fallback ?? fallbackSymbol(url)
+  const platform = detectPlatform(url)
+  const tint = platform ? TINT[platform] : undefined
   const src = candidates[index]
 
   return (
     <span className={cn('relative inline-block shrink-0 align-middle transition-colors', backing && loaded && 'rounded-md bg-white shadow-sm ring-1 ring-black/5', className)}>
-      <Symbol aria-hidden className={cn('absolute inset-0 h-full w-full transition-opacity', loaded && 'opacity-0')} />
+      <Symbol aria-hidden className={cn('absolute inset-0 h-full w-full transition-opacity', tint, loaded && 'opacity-0')} />
       {src && (
         <img
           key={src}
@@ -47,6 +58,7 @@ export function PlatformLogo({ url, className, fallback, size = 128, backing = f
           alt=""
           draggable={false}
           decoding="async"
+          referrerPolicy="no-referrer"
           onLoad={() => {
             setLoaded(true)
             rememberLogo(url, src)

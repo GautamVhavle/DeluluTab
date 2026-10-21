@@ -85,11 +85,12 @@ function Img({ src, className }: { src: string; className?: string }) {
  * Anything that can't be shown falls back to a symbol, never a broken image.
  */
 export function ShortcutIcon({ icon, url, className }: { icon: string; url: string; className?: string }) {
+  // A pasted image wins. Otherwise always use the site's favicon, not a generic symbol.
+  if (isImageUrl(icon)) return <Img key={icon} src={icon} className={className} />
+  if (url.trim()) return <PlatformLogo url={url} className={className} backing size={64} />
   if (icon && ICONS[icon]) {
     const Icon = ICONS[icon]
     return <Icon className={className} />
   }
-  if (isImageUrl(icon)) return <Img key={icon} src={icon} className={className} />
-  if (icon === '') return <PlatformLogo url={url} className={className} backing />
   return <FaGlobe className={className} />
 }

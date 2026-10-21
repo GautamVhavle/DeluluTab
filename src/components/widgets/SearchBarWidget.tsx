@@ -21,7 +21,7 @@ const isEditable = (el: EventTarget | null) => {
   return !!t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))
 }
 
-/** `/` and Cmd/Ctrl+K focus the bar. Alt+S flips it between web search and AI. */
+/** `/` focuses the bar. Alt+S flips it between web search and AI. */
 function useFocusShortcuts(input: React.RefObject<HTMLInputElement | null>, toggleMode: () => void) {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -32,11 +32,7 @@ function useFocusShortcuts(input: React.RefObject<HTMLInputElement | null>, togg
         input.current?.focus()
         return
       }
-      if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'k') {
-        e.preventDefault()
-        input.current?.focus()
-        input.current?.select()
-      } else if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey && !isEditable(e.target)) {
+      if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey && !isEditable(e.target)) {
         e.preventDefault()
         input.current?.focus()
       }
@@ -55,13 +51,24 @@ export function SearchBarWidget({ mode }: WidgetProps) {
   const engine = webEngine.group === 'web' ? webEngine : engineById('google')
   const provider = aiProviderById(providerId)
   const asking = commandMode === 'ai'
-  const focus = mode === 'focus'
   const compact = mode === 'compact'
+  const roomy = !compact
 
   const input = useRef<HTMLInputElement>(null)
   const [focused, setFocused] = useState(false)
   const toggleMode = useCallback(() => updateSettings({ commandMode: asking ? 'web' : 'ai' }), [asking, updateSettings])
   useFocusShortcuts(input, toggleMode)
+  useEffect(() => {
+    const field = input.current
+    if (!field) return
+    const id = requestAnimationFrame(() => {
+      if (document.querySelector('[role="dialog"]')) return
+      const active = document.activeElement
+      if (active instanceof HTMLElement && active !== document.body) return
+      field.focus()
+    })
+    return () => cancelAnimationFrame(id)
+  }, [])
 
   const web = SEARCH_ENGINES.filter((e) => e.group === 'web')
   const targetName = asking ? provider.name : engine.name
@@ -81,12 +88,12 @@ export function SearchBarWidget({ mode }: WidgetProps) {
     >
       <div
         className={cn(
-          'flex items-center gap-1 rounded-2xl border border-white/20 bg-white/40 shadow-sm backdrop-blur-xl transition-shadow dark:border-white/10 dark:bg-white/[0.06]',
-          'focus-within:ring-2 focus-within:ring-ring/50',
-          focus ? 'p-1.5 text-lg' : compact ? 'p-1 text-sm' : 'p-1.5',
+          'flex items-center gap-1 rounded-2xl border border-black/10 bg-white shadow-sm transition-shadow dark:border-white/10 dark:bg-slate-950',
+          'focus-within:border-primary focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary',
+          roomy ? 'p-1.5' : 'p-1 text-sm',
         )}
       >
-        <div role="radiogroup" aria-label="Send the query to a search engine or an AI" className="flex shrink-0 rounded-xl bg-black/5 p-0.5 dark:bg-white/10">
+        <div role="radiogroup" aria-label="Send the query to a search engine or an AI" className="flex shrink-0 rounded-xl bg-slate-100 p-0.5 dark:bg-slate-900">
           {([
             ['web', 'Search'],
             ['ai', 'Ask'],
@@ -98,9 +105,9 @@ export function SearchBarWidget({ mode }: WidgetProps) {
               aria-checked={commandMode === value}
               onClick={() => updateSettings({ commandMode: value })}
               className={cn(
-                'rounded-[10px] px-2.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                focus ? 'py-2' : 'py-1.5',
-                commandMode === value ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+                'rounded-[10px] px-2.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                roomy ? 'py-1.5' : 'py-1',
+                commandMode === value ? 'bg-white text-slate-950 shadow-sm dark:bg-slate-950 dark:text-slate-100' : 'text-muted-foreground hover:text-foreground',
               )}
             >
               {label}
@@ -113,13 +120,13 @@ export function SearchBarWidget({ mode }: WidgetProps) {
               type="button"
               aria-label={asking ? `AI: ${targetName}` : `Search engine: ${targetName}`}
               className={cn(
-                'flex shrink-0 items-center gap-1.5 rounded-xl px-2 text-sm font-medium outline-none transition-colors hover:bg-accent/60 focus-visible:ring-2 focus-visible:ring-ring',
-                focus ? 'py-2.5' : 'py-1.5',
+                'flex min-w-0 max-w-[9rem] shrink items-center gap-1.5 rounded-xl px-2 text-sm font-medium transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                roomy ? 'py-1.5' : 'py-1',
               )}
             >
-              <PlatformLogo url={targetSite} fallback={targetIcon} className={cn('h-4 w-4', asking ? 'text-violet-400' : 'text-muted-foreground')} />
-              <span className={compact ? 'sr-only sm:not-sr-only' : undefined}>{targetName}</span>
-              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              <PlatformLogo url={targetSite} fallback={targetIcon} className={cn('h-4 w-4 shrink-0', asking ? 'text-violet-400' : 'text-muted-foreground')} />
+              <span className={cn('truncate', compact && 'sr-only sm:not-sr-only')}>{targetName}</span>
+              <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -157,18 +164,18 @@ export function SearchBarWidget({ mode }: WidgetProps) {
               toggleMode()
             }
           }}
-          className={cn('min-w-0 flex-1 bg-transparent px-2 outline-none placeholder:text-muted-foreground', focus ? 'py-2.5' : 'py-1.5')}
+          className={cn('min-w-0 flex-1 bg-transparent px-2 outline-none placeholder:text-muted-foreground', roomy ? 'py-1.5' : 'py-1')}
         />
 
-        {!focused && !compact && (
-          <kbd aria-hidden className="mr-2 hidden shrink-0 rounded-md border bg-background/50 px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground sm:block">
-            Tab
+        {!focused && roomy && (
+          <kbd aria-hidden className="mr-2 hidden shrink-0 rounded-md border border-black/10 bg-background/50 px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground dark:border-white/15 sm:block">
+            /
           </kbd>
         )}
       </div>
-      {mode === 'detailed' && (
+      {roomy && (
         <p className="px-1 text-xs text-muted-foreground">
-          <kbd className="font-mono">Tab</kbd> or <kbd className="font-mono">{isMac() ? '⌥S' : 'Alt+S'}</kbd> switches search and AI · <kbd className="font-mono">/</kbd> focuses
+          <kbd className="font-mono">/</kbd> focuses · <kbd className="font-mono">Tab</kbd> or <kbd className="font-mono">{isMac() ? '⌥S' : 'Alt+S'}</kbd> switches search and AI
         </p>
       )}
     </form>

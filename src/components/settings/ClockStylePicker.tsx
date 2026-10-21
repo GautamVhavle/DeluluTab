@@ -1,9 +1,8 @@
-import { useState } from 'react'
-import { allZones, cityName, isValidTimeZone, normalizeZoneInput, POPULAR_ZONES, zonedParts } from '@/utils/timezones'
+import { useMemo } from 'react'
+import { allZones, cityName, isValidTimeZone, zonedParts } from '@/utils/timezones'
 import { cn } from '@/utils/cn'
 import { useAppStore, type ClockStyle } from '@/store/useAppStore'
-import { Input } from '@/components/common/input'
-import { Section } from './SettingsUi'
+import { Section, selectClass } from './SettingsUi'
 
 function MiniDigital() {
   return <span className="bg-gradient-to-b from-foreground to-foreground/60 bg-clip-text text-lg font-light tabular-nums text-transparent">10:42</span>
@@ -67,50 +66,39 @@ export function ClockStylePicker() {
 function TimezonePicker() {
   const zone = useAppStore((s) => s.settings.secondTimezone)
   const updateSettings = useAppStore((s) => s.updateSettings)
-  const [draft, setDraft] = useState('')
-  const [error, setError] = useState('')
   const valid = isValidTimeZone(zone) ? zone : 'UTC'
   const p = zonedParts(new Date(), valid)
-
-  function commit() {
-    const name = draft.trim()
-    if (!name) return setError('')
-    const match = normalizeZoneInput(name)
-    if (!match) return setError('Not a known time zone. Try a name like Europe/Paris.')
-    updateSettings({ secondTimezone: match })
-    setDraft('')
-    setError('')
-  }
+  const groups = useMemo(() => {
+    const zones = [...allZones()]
+    if (!zones.includes(valid)) zones.unshift(valid)
+    const map = new Map<string, string[]>()
+    for (const id of zones) {
+      const area = id.includes('/') ? id.split('/')[0] : 'Other'
+      const list = map.get(area) ?? []
+      list.push(id)
+      map.set(area, list)
+    }
+    return [...map.entries()]
+  }, [valid])
 
   return (
     <Section title="Second time zone" hint={`Showing ${cityName(valid)} (${String(p.hour).padStart(2, '0')}:${String(p.minute).padStart(2, '0')} there right now).`}>
-      <div role="radiogroup" aria-label="Popular time zones" className="flex flex-wrap gap-1.5">
-        {POPULAR_ZONES.map((z) => (
-          <button
-            key={z.id}
-            type="button"
-            role="radio"
-            aria-checked={valid === z.id}
-            onClick={() => updateSettings({ secondTimezone: z.id })}
-            className={cn('rounded-full px-2.5 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', valid === z.id ? 'bg-primary text-primary-foreground' : 'bg-secondary/70 text-muted-foreground hover:text-foreground')}
-          >
-            {z.city}
-          </button>
+      <select
+        aria-label="Second time zone"
+        value={valid}
+        onChange={(e) => updateSettings({ secondTimezone: e.target.value })}
+        className={selectClass}
+      >
+        {groups.map(([area, ids]) => (
+          <optgroup key={area} label={area}>
+            {ids.map((id) => {
+              const city = cityName(id)
+              const shared = ids.filter((other) => cityName(other) === city).length > 1
+              return <option key={id} value={id}>{shared ? `${city} · ${id}` : city}</option>
+            })}
+          </optgroup>
         ))}
-      </div>
-      <Input
-        list="delulutab-zones"
-        value={draft}
-        onChange={(e) => { setDraft(e.target.value); setError('') }}
-        onBlur={commit}
-        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), commit())}
-        placeholder="Or type any zone, e.g. Africa/Nairobi"
-        aria-label="Custom time zone"
-        autoComplete="off"
-        spellCheck={false}
-      />
-      <datalist id="delulutab-zones">{allZones().map((z) => <option key={z} value={z} />)}</datalist>
-      {error && <p role="alert" className="text-xs text-red-500">{error}</p>}
+      </select>
     </Section>
   )
 }

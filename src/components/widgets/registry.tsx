@@ -16,6 +16,7 @@ export const widgetRegistry: Record<WidgetKey, LazyExoticComponent<ComponentType
   weather: load(() => import('./WeatherWidget'), 'WeatherWidget'),
   quickApps: load(() => import('./QuickAppsWidget'), 'QuickAppsWidget'),
   news: load(() => import('./NewsWidget'), 'NewsWidget'),
+  quotes: load(() => import('./QuotesWidget'), 'QuotesWidget'),
   tabStash: load(() => import('./TabStashWidget'), 'TabStashWidget'),
   github: load(() => import('./GithubWidget'), 'GithubWidget'),
   pomodoro: load(() => import('./PomodoroWidget'), 'PomodoroWidget'),

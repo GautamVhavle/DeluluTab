@@ -1,19 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="DeluluTab">
   <defs>
-    <linearGradient id="tile" x1="12" y1="6" x2="116" y2="126" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#4f46e5"/>
-      <stop offset="0.55" stop-color="#9333ea"/>
-      <stop offset="1" stop-color="#ec4899"/>
-    </linearGradient>
-    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fff" stop-opacity="0.22"/>
-      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    <linearGradient id="tile" x1="18" y1="8" x2="112" y2="124" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6d5efc"/>
+      <stop offset="0.48" stop-color="#7c3aed"/>
+      <stop offset="1" stop-color="#22d3ee"/>
     </linearGradient>
   </defs>
-  <rect width="128" height="128" rx="30" fill="url(#tile)"/>
-  <rect width="128" height="64" rx="30" fill="url(#gloss)"/>
-  <!-- the D: outer shape and counter, cut with even-odd -->
-  <path fill="#fff" fill-rule="evenodd" d="M30 26h32c28 0 44 17 44 38s-16 38-44 38H30z M52 46v36h10c13 0 21-7 21-18s-8-18-21-18z"/>
-  <!-- the spark, with a ring of tile color so it stays distinct where it overlaps the D -->
-  <path fill="#fff" stroke="#8b3fe8" stroke-width="5" stroke-linejoin="round" paint-order="stroke" d="M98 12c1.7 12 6.3 17 18 19-11.7 2-16.3 7-18 19-1.7-12-6.3-17-18-19 11.7-2 16.3-7 18-19z"/>
+  <rect width="128" height="128" rx="32" fill="#100d1c"/>
+  <rect x="6" y="6" width="116" height="116" rx="26" fill="url(#tile)"/>
+  <path fill="#fff" fill-rule="evenodd" d="M38 34h26c22 0 36 13 36 30s-14 30-36 30H38zm18 16v28h8c10 0 16-5.5 16-14s-6-14-16-14z"/>
 </svg>

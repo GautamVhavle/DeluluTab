@@ -54,7 +54,14 @@ describe('widget catalog', () => {
   })
 
   it('shows only the core widgets out of the box', () => {
-    expect(Object.entries(DEFAULT_WIDGETS).filter(([, on]) => on).map(([key]) => key).sort()).toEqual(['clock', 'news', 'quickApps', 'search', 'weather'])
+    expect(Object.entries(DEFAULT_WIDGETS).filter(([, on]) => on).map(([key]) => key).sort()).toEqual(['clock', 'quickApps', 'quotes', 'search', 'weather'])
+    expect(WIDGET_CATALOG.filter((w) => !w.optional).map((w) => w.key).sort()).toEqual(['clock', 'quickApps', 'quotes', 'search', 'weather'])
+  })
+
+  it('keeps core widgets on the dashboard even if their switch was turned off', () => {
+    const ids = visibleGridIds('detailed', { ...DEFAULT_WIDGETS, clock: false, quotes: false, github: true }, [])
+    expect(ids).toEqual(expect.arrayContaining(['clock', 'quotes', 'github']))
+    expect(ids).not.toContain('pomodoro')
   })
 })
 

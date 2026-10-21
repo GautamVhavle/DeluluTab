@@ -80,7 +80,7 @@ export function BackupPanel() {
 
   return (
     <div className="grid gap-7">
-      <Section title="Export" hint="Saves your settings, shortcuts, folders, chords, widgets and layouts to a JSON file, plus your GitHub username and Spotify Client ID. Sign-in tokens, uploaded wallpapers and your Unsplash key never leave this device.">
+      <Section title="Export" hint="A JSON file of your setup. Sign-in tokens and uploaded photos stay on this device.">
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={includeNotes} onChange={(e) => setIncludeNotes(e.target.checked)} className="h-4 w-4 accent-primary" />
           Include my notes, tasks and saved tab groups
@@ -91,7 +91,7 @@ export function BackupPanel() {
         </div>
       </Section>
 
-      <Section title="Import" hint="Replaces your current configuration with the one in a backup file. Export first if you want to keep what you have.">
+      <Section title="Import" hint="Replaces this setup. Export first if you want a copy.">
         <input ref={input} type="file" accept="application/json,.json" hidden aria-label="Choose a backup file" onChange={(e) => void chooseFile(e.target.files?.[0])} />
         <div>
           <Button variant="secondary" onClick={() => input.current?.click()}><Import /> Choose a backup file…</Button>
@@ -128,7 +128,7 @@ export function BackupPanel() {
         )}
       </Section>
 
-      <Section title="Restore default configuration" hint="Puts settings, shortcuts, chords, widgets and the dashboard layout back to how DeluluTab starts. Notes, tasks, saved tab groups and custom widgets are kept unless you choose otherwise.">
+      <Section title="Restore defaults" hint="Back to a fresh setup. Notes and tasks stay unless you include them.">
         {!confirmRestore ? (
           <div>
             <Button variant="outline" onClick={() => setConfirmRestore(true)}><Restore /> Restore defaults…</Button>
