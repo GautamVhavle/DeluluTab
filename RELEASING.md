@@ -62,4 +62,4 @@ DeluluTab is not published to the Chrome Web Store. Attach `release/DeluluTab-vX
   - `host_permissions`: the news and quote feeds, which do not send CORS headers. Weather, GitHub and picture links are called only when you use those features. See [PRIVACY.md](PRIVACY.md).
 - **Privacy policy URL:** `https://github.com/GautamVhavle/DeluluTab/blob/main/PRIVACY.md`
 - **Data disclosure:** location (approximate, used for weather, not stored on a server), website content you enter (notes, prompts you send on to AI sites), and web history is **not** collected. Nothing is sold or used for ads.
-- **Preview images:** `npm run build && npm run store:assets` writes the Detailed, Compact and Focus screenshots, plus the widgets panel and the 440×280 tile, to `store/`. The greeting in those pictures is Gautam and the city is Hyderabad.
+- **Preview images:** `npm run store:assets -- --url http://localhost:5173/` writes Focus, then a loaded Detailed view, plus the widgets panel and the 440×280 tile, to `store/`. The greeting in those pictures is Gautam and the city is Hyderabad. Run it against the dev server so the news actually loads.

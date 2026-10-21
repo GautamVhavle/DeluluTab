@@ -20,15 +20,19 @@
 </p>
 
 <p align="center">
-  <img src="store/screenshot-1-detailed.png" alt="Detailed view. Night earth, the greeting is for Gautam, and the weather city is Hyderabad." width="820" />
+  <a href="https://delulutab-preview.vercel.app"><strong>Open the live preview</strong></a>
 </p>
 
 <p align="center">
-  <img src="store/screenshot-2-compact.png" alt="A tighter view of the same new tab, still greeting Gautam, still showing Hyderabad." width="820" />
+  <img src="store/screenshot-1-focus.png" alt="Focus view. Night earth, the greeting is for Gautam, and the layout switch says Focus." width="820" />
 </p>
 
 <p align="center">
-  <sub>Detailed, then a tighter view of the same page. Night earth behind both. The greeting is Gautam. The weather city is Hyderabad.</sub>
+  <img src="store/screenshot-2-detailed.png" alt="Detailed view, loaded. Night earth, Gautam, Hyderabad weather, shortcuts, a quote and the news." width="820" />
+</p>
+
+<p align="center">
+  <sub>Focus, then Detailed. Night earth behind both. The greeting is Gautam. The weather city is Hyderabad.</sub>
 </p>
 
 ---

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Chrome Web Store images from the real build: three 1280x800 screenshots (Detailed, Compact, Focus)
- * and the 440x280 small promo tile, written to store/.
+ * README and store images from the running page: Focus, then a loaded Detailed view,
+ * plus the widgets panel and the 440x280 promo tile, written to store/.
  *
  *   npm run build && npm run store:assets
  *
@@ -53,7 +53,7 @@ const SEED = {
       weatherLocation: { name: 'Hyderabad', latitude: 17.385, longitude: 78.4867 },
     },
   },
-  version: 8,
+  version: 10,
 }
 
 try {
@@ -72,23 +72,46 @@ try {
     await page.evaluate((next) => {
       const key = 'delulutab:store'
       const saved = JSON.parse(localStorage.getItem(key) || '{}')
+      saved.state ??= {}
+      saved.state.settings ??= {}
       saved.state.settings.layoutMode = next
-      saved.version = 8
+      saved.state.settings.userName = 'Gautam'
+      saved.state.settings.backgroundSource = 'video'
+      saved.state.settings.ambientVideo = 'night-earth'
+      saved.state.settings.weatherLocation = { name: 'Hyderabad', latitude: 17.385, longitude: 78.4867 }
+      saved.state.widgets = { ...(saved.state.widgets ?? {}), pomodoro: next === 'focus', news: false }
+      saved.version = 10
       localStorage.setItem(key, JSON.stringify(saved))
     }, mode)
     await page.reload({ waitUntil: 'domcontentloaded' })
     await page.waitForSelector('.react-grid-item')
-    await page.getByText('Hyderabad').waitFor({ timeout: 8000 }).catch(() => {})
+    await page.getByText('Gautam').first().waitFor({ timeout: 8000 })
     await page.locator('video[poster*="night-earth"]').first().waitFor({ timeout: 15000 })
-    await page.waitForTimeout(800)
+    await page.getByRole('radio', { name: mode === 'focus' ? 'Focus' : 'Detailed', exact: true }).waitFor()
+    if (mode === 'detailed') {
+      await page.getByText('Hyderabad').waitFor({ timeout: 15000 })
+      await page.getByText(/\d+°/).first().waitFor({ timeout: 15000 })
+      await page.getByRole('region', { name: 'Daily quote' }).waitFor()
+      await page.getByRole('region', { name: 'News' }).waitFor({ timeout: 20000 })
+      await page.locator('[aria-label="News"] a').first().waitFor({ timeout: 20000 })
+    }
+    await page.waitForTimeout(600)
   }
 
-  for (const [mode, file] of [['detailed', 'screenshot-1-detailed.png'], ['compact', 'screenshot-2-compact.png'], ['focus', 'screenshot-3-focus.png']]) {
-    await show(mode)
-    if (mode === 'compact') await page.locator('[data-boot="switcher"]').evaluate((el) => { el.style.visibility = 'hidden' })
-    await page.screenshot({ path: path.join(out, file) })
-    console.log(`  store/${file}`)
-  }
+  await page.setViewportSize({ width: 1280, height: 1100 })
+  await show('focus')
+  await page.screenshot({ path: path.join(out, 'screenshot-1-focus.png') })
+  console.log('  store/screenshot-1-focus.png')
+
+  await page.setViewportSize({ width: 1280, height: 1280 })
+  await show('detailed')
+  await page.screenshot({ path: path.join(out, 'screenshot-2-detailed.png') })
+  console.log('  store/screenshot-2-detailed.png')
+
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await show('focus')
+  await page.screenshot({ path: path.join(out, 'screenshot-3-focus.png') })
+  console.log('  store/screenshot-3-focus.png')
 
   await show('detailed')
   await page.getByRole('button', { name: 'Settings', exact: true }).click()

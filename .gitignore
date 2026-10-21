@@ -8,6 +8,7 @@ dist
 release
 test-results
 playwright-report
+.vercel
 
 # local handoff notes
 temp/
