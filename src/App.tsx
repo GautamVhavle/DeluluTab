@@ -93,7 +93,7 @@ export default function App() {
             href="https://gautamvhavle.xyz/"
             target="_blank"
             rel="noopener noreferrer"
-            className="fixed bottom-16 left-4 z-40 rounded-full border border-white/20 bg-white/40 px-3 py-1.5 text-xs text-muted-foreground shadow-lg backdrop-blur-xl transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-white/10 dark:bg-white/10"
+            className="fixed bottom-4 left-4 z-40 rounded-full border border-white/20 bg-white/40 px-3 py-1.5 text-xs text-muted-foreground shadow-lg backdrop-blur-xl transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-white/10 dark:bg-white/10"
           >
             made with ❤️ by <span className="font-bold text-foreground">Gautam Vhavle</span>
           </a>

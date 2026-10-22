@@ -83,7 +83,7 @@ There is no store listing. You load the unpacked extension.
 
 The same steps, at `brave://extensions`. Brave runs this Manifest V3 package the same way Chrome does. If Shields blocks a feed or a photo, allow DeluluTab for that page.
 
-Brave and Chrome draw their own bar along the bottom of a new tab. It shows the extension name and **Customize**. Right-click that bar and choose **Hide footer on New Tab page**. DeluluTab cannot remove a bar the browser draws.
+Brave and Chrome draw their own bar under the new tab. It shows the extension name and **Customize**. An extension cannot hide that bar. Right-click it and choose **Hide footer on New Tab page**. The page then fills the window, and the controls sit on the bottom edge.
 
 **Firefox**
 

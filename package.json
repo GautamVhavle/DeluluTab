@@ -1,7 +1,7 @@
 {
   "name": "delulutab",
   "private": true,
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "DeluluTab — a new tab for Chrome and Brave. Search, AI, chords, and a dashboard that stays on your device.",
   "author": "GautamVhavle <gautam.vhavle@grigtechnologies.com>",
   "license": "MIT",

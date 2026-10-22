@@ -14,8 +14,8 @@ export function ModeSwitcher() {
   const updateSettings = useAppStore((s) => s.updateSettings)
 
   return (
-    // Full-width, non-interactive rail so the pill can be centered without a CSS transform (GSAP animates this wrapper).
-    <div data-boot="switcher" className="pointer-events-none fixed inset-x-0 bottom-16 z-40 flex justify-center">
+    // Full-width rail so the pill can be centered without a transform. Brave already shortens the page while its footer is visible, so this stays on the page edge and drops when that footer is hidden.
+    <div data-boot="switcher" className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center">
       <div
         role="radiogroup"
         aria-label="Layout mode"
